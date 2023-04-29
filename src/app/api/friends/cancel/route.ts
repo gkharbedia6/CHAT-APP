@@ -12,8 +12,7 @@ export async function POST(req: Request) {
 
     const session = await getServerSession(authOptions);
     if (!session) {
-      new Response('Unauthorized', { status: 401 });
-      return;
+      return new Response('Unauthorized', { status: 401 });
     }
 
     await db.srem(

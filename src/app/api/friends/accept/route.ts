@@ -40,6 +40,10 @@ export async function POST(req: Request) {
       `user:${session.user.id}:incoming_friend_requests`,
       idToAccept
     );
+    await db.srem(
+      `user:${idToAccept}:outgoing_friend_requests`,
+      session.user.id
+    );
 
     return new Response('Friend added', { status: 200 });
   } catch (error) {

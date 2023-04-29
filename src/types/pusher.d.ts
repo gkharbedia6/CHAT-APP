@@ -1,9 +1,3 @@
-interface IncomingFriendRequest {
-  senderId: string;
-  senderEmail: string | null | undefined;
-}
+interface IncomingFriendRequest extends User {}
 
-interface OutgoingFriendRequest {
-  receiverId: string;
-  receiverEmail: string | null | undefined;
-}
+interface OutgoingFriendRequest extends User {}

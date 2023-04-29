@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     }
 
     await db.srem(`user:${session.user.id}:incoming_friend_requests`, idToDeny);
+    await db.srem(`user:${idToDeny}:outgoing_friend_requests`, session.user.id);
 
     return new Response('Friend request denied', { status: 200 });
   } catch (error) {

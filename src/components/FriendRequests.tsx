@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { FC, useState } from 'react';
 
 import Button from '@/ui/Button';
+import Image from 'next/image';
 
 interface FriendRequestsProps {
   incomingFriendRequests: IncomingFriendRequest[];
@@ -30,7 +31,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
   const acceptFriend = async (senderId: string) => {
     await axios.post('/api/friends/accept', { id: senderId });
     setIncomingRequests((prev) =>
-      prev.filter((friendRequest) => friendRequest.senderId !== senderId)
+      prev.filter((friendRequest) => friendRequest.id !== senderId)
     );
     router.refresh();
   };
@@ -38,7 +39,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
   const denyFriend = async (senderId: string) => {
     await axios.post('/api/friends/deny', { id: senderId });
     setIncomingRequests((prev) =>
-      prev.filter((friendRequest) => friendRequest.senderId !== senderId)
+      prev.filter((friendRequest) => friendRequest.id !== senderId)
     );
     router.refresh();
   };
@@ -46,7 +47,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
   const cancelRequest = async (receiverId: string) => {
     await axios.post('/api/friends/cancel', { id: receiverId });
     setOutgoingRequests((prev) =>
-      prev.filter((friendRequest) => friendRequest.receiverId !== receiverId)
+      prev.filter((friendRequest) => friendRequest.id !== receiverId)
     );
     router.refresh();
   };
@@ -60,33 +61,41 @@ const FriendRequests: FC<FriendRequestsProps> = ({
         {incomingRequests.length === 0 ? (
           <p className="text-sm text-zinc-500">Nothing to show here...</p>
         ) : (
-          incomingRequests.map((incomingRequests) => (
+          incomingRequests.map((incomingRequest) => (
             <div
-              key={incomingRequests.senderId}
+              key={incomingRequest.id}
               className="flex gap-4 items-center py-1 justify-between"
             >
-              <UserPlus className="text-black" />
-              <p className="font-medium text-lg">
-                {incomingRequests.senderEmail}
-              </p>
-              <button
-                aria-label="accept friend"
-                className="w-8 h-8 bg-indigo-600 hover:bg-indigo-600 grid place-items-center rounded-full transition hover:shadow-md"
-              >
-                <Check
-                  className="font-semibold text-white w-3/4 h-3/4"
-                  onClick={() => acceptFriend(incomingRequests.senderId)}
+              <div className="relative h-8 w-8 bg-gray-50">
+                <Image
+                  fill
+                  referrerPolicy="no-referrer"
+                  className="rounded-full"
+                  src={incomingRequest.image ?? ''}
+                  alt={`Profile picture of ${incomingRequest.name}`}
                 />
-              </button>
-              <button
-                aria-label="deny friend"
-                className="w-8 h-8 bg-red-600 hover:bg-red-600 grid place-items-center rounded-full transition hover:shadow-md"
-              >
-                <X
-                  className="font-semibold text-white w-3/4 h-3/4"
-                  onClick={() => denyFriend(incomingRequests.senderId)}
-                />
-              </button>
+              </div>
+              <p className="font-medium text-lg">{incomingRequest.name}</p>
+              <div className="flex flex-row gap-3">
+                <button
+                  aria-label="accept friend"
+                  className="w-8 h-8 bg-indigo-600 hover:bg-indigo-600 grid place-items-center rounded-full transition hover:shadow-md"
+                >
+                  <Check
+                    className="font-semibold text-white w-3/4 h-3/4"
+                    onClick={() => acceptFriend(incomingRequest.id)}
+                  />
+                </button>
+                <button
+                  aria-label="deny friend"
+                  className="w-8 h-8 bg-red-600 hover:bg-red-600 grid place-items-center rounded-full transition hover:shadow-md"
+                >
+                  <X
+                    className="font-semibold text-white w-3/4 h-3/4"
+                    onClick={() => denyFriend(incomingRequest.id)}
+                  />
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -98,20 +107,26 @@ const FriendRequests: FC<FriendRequestsProps> = ({
         {outgoingRequests.length === 0 ? (
           <p className="text-sm text-zinc-500">Nothing to show here...</p>
         ) : (
-          outgoingRequests.map((outgoingRequests) => (
+          outgoingRequests.map((outgoingRequest) => (
             <div
-              key={outgoingRequests.receiverId}
+              key={outgoingRequest.id}
               className="flex gap-4 items-center justify-between py-1"
             >
-              <UserPlus className="text-black " />
-              <p className="font-medium text-lg">
-                {outgoingRequests.receiverEmail}
-              </p>
+              <div className="relative h-8 w-8 bg-gray-50">
+                <Image
+                  fill
+                  referrerPolicy="no-referrer"
+                  className="rounded-full"
+                  src={outgoingRequest.image ?? ''}
+                  alt={`Profile picture of ${outgoingRequest.name}`}
+                />
+              </div>
+              <p className="font-medium text-lg">{outgoingRequest.name}</p>
               <Button
                 variant={'default'}
                 size={'sm'}
-                className="bg-indigo-500 w-fit hover:bg-indigo-600 transition hover:shadow-md"
-                onClick={() => cancelRequest(outgoingRequests.receiverId)}
+                className="bg-indigo-500 w-fit hover:bg-indigo-600 transition hover:shadow-md "
+                onClick={() => cancelRequest(outgoingRequest.id)}
               >
                 Cancel
               </Button>

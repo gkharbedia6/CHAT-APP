@@ -17,11 +17,7 @@ const page = async () => {
   const incomingFriendRequests = await Promise.all(
     incomingRequestIds.map(async (incomingId) => {
       const user = (await fetchRedis('get', `user:${incomingId}`)) as string;
-      const userData = JSON.parse(user) as User;
-      return {
-        senderId: incomingId,
-        senderEmail: userData.email,
-      };
+      return JSON.parse(user) as User;
     })
   );
 
@@ -33,11 +29,7 @@ const page = async () => {
   const outgoingFriendRequests = await Promise.all(
     outgoingRequestIds.map(async (outgoingId) => {
       const user = (await fetchRedis('get', `user:${outgoingId}`)) as string;
-      const userData = JSON.parse(user) as User;
-      return {
-        receiverId: outgoingId,
-        receiverEmail: userData.email,
-      };
+      return JSON.parse(user) as User;
     })
   );
 
