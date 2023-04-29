@@ -1,9 +1,5 @@
-import { FC } from 'react';
-
-interface pageProps {}
-
-const page: FC<pageProps> = ({}) => {
-  return <div>dashboard</div>;
+const page = async () => {
+  return <div></div>;
 };
 
 export default page;
