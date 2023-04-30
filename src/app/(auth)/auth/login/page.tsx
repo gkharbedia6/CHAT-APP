@@ -6,9 +6,9 @@ import { toast } from 'react-hot-toast';
 
 import Button from '@/ui/Button';
 
-interface pageProps {}
+interface PageProps {}
 
-const page: FC<pageProps> = ({}) => {
+const page: FC<PageProps> = ({}) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [isLoading, setIsLoading] = useState<boolean>(false);
 

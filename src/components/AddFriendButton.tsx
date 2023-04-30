@@ -35,13 +35,10 @@ const AddFriendButton: FC<AddFriendButtonProps> = ({}) => {
       setShowSuccessState(true);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log('zod');
         setError('email', { message: error.message });
         return;
       }
       if (error instanceof AxiosError) {
-        console.log('axios');
-
         setError('email', { message: error.response?.data });
         return;
       }
