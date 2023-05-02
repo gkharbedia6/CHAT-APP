@@ -5,7 +5,8 @@ import { fetchRedis } from '@/helpers/redis';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Message, messageValidator } from '@/lib/validations/message';
-
+import { pusherServer } from '@/lib/pusher';
+import { toPusherKey } from '@/lib/utils';
 export async function POST(req: Request) {
   try {
     const { text, chatId }: { text: string; chatId: string } = await req.json();
@@ -51,10 +52,11 @@ export async function POST(req: Request) {
 
     const message = messageValidator.parse(messageData);
 
-    await db.zadd(`chat:${chatId}:messages`, {
-      score: timestamp,
-      member: JSON.stringify(message),
-    });
+    pusherServer.trigger(toPusherKey(`chat:${chatId}`), 'messages', message),
+      await db.zadd(`chat:${chatId}:messages`, {
+        score: timestamp,
+        member: JSON.stringify(message),
+      });
 
     return new Response('Message sent', { status: 200 });
   } catch (error) {

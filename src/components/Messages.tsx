@@ -1,23 +1,26 @@
 'use client';
 
-import { FC, useRef, useState } from 'react';
-import { format } from 'date-fns';
+import { FC, useEffect, useRef, useState } from 'react';
+import { format, set } from 'date-fns';
 import Image from 'next/image';
+import { Session } from 'next-auth';
 
 import { Message } from '@/lib/validations/message';
-import { cn } from '@/lib/utils';
-import { Session } from 'next-auth';
+import { cn, toPusherKey } from '@/lib/utils';
+import { pusherClient } from '@/lib/pusher';
 
 interface MessagesProps {
   initialMessages: Message[];
   session: Session;
   chatPartner: User;
+  chatId: string;
 }
 
 const Messages: FC<MessagesProps> = ({
   initialMessages,
   session,
   chatPartner,
+  chatId,
 }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
@@ -26,6 +29,22 @@ const Messages: FC<MessagesProps> = ({
   const formatTimestamp = (timestamp: number) => {
     return format(timestamp, 'HH:mm');
   };
+
+  useEffect(() => {
+    pusherClient.subscribe(toPusherKey(`chat:${chatId}`));
+
+    const newMessageHandler = (message: Message) => {
+      setMessages((prev) => [message, ...prev]);
+    };
+
+    pusherClient.bind('messages', newMessageHandler);
+
+    return () => {
+      pusherClient.unsubscribe(toPusherKey(`chat:${chatId}`));
+
+      pusherClient.unbind('messages', newMessageHandler);
+    };
+  }, []);
 
   return (
     <div
@@ -70,6 +89,7 @@ const Messages: FC<MessagesProps> = ({
                 >
                   {message.text}
                   {''}
+
                   <span className="ml-2 text-xs text-gray-400">
                     {formatTimestamp(message.timestamp)}
                   </span>

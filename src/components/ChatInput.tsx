@@ -1,25 +1,28 @@
 'use client';
 
-import { FC, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 import Button from '@/ui/Button';
+import { pusherClient, pusherServer } from '@/lib/pusher';
+import { toPusherKey } from '@/lib/utils';
 
 interface ChatInputProps {
   chatPartner: User;
-  chatId: string;
+  chatId?: string;
 }
 
 const ChatInput: FC<ChatInputProps> = ({ chatPartner, chatId }) => {
   const [input, setInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sendMessage = async () => {
+    if (!input) return;
     setIsLoading(true);
-
     try {
       await axios.post('/api/message/send', { text: input, chatId });
       setInput('');
@@ -31,10 +34,35 @@ const ChatInput: FC<ChatInputProps> = ({ chatPartner, chatId }) => {
     }
   };
 
+  const handleInputChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    // console.log(e.currentTarget.value.length > 0);
+    // pusherServer.trigger(toPusherKey(`is-typing:${chatId}`), 'typing', {
+    //   isTyping: true,
+    // });
+  };
+
+  // useEffect(() => {
+  //   pusherClient.subscribe(toPusherKey(`is-typing:${chatId}`));
+
+  //   const isTypingHandler = (typing: boolean) => {
+  //     setIsTyping(typing);
+  //     console.log(isTyping);
+  //   };
+
+  //   pusherClient.bind('typing', isTypingHandler);
+
+  //   return () => {
+  //     pusherClient.unsubscribe(toPusherKey(`is-typing:${chatId}`));
+
+  //     pusherClient.unbind('typing', isTypingHandler);
+  //   };
+  // }, []);
+
   return (
     <div className="border-t border-gray-200 px-4 pt-4 mb-2 sm:mb-4">
       <div className="relative flex-1 overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600">
         <TextareaAutosize
+          onInput={handleInputChange}
           ref={textareaRef}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
