@@ -1,20 +1,20 @@
-import { NextAuthOptions } from 'next-auth';
-import { UpstashRedisAdapter } from '@next-auth/upstash-redis-adapter';
-import GoogleProvider from 'next-auth/providers/google';
+import { NextAuthOptions } from "next-auth";
+import { UpstashRedisAdapter } from "@next-auth/upstash-redis-adapter";
+import GoogleProvider from "next-auth/providers/google";
 
-import { db } from '@/lib//db';
-import { fetchRedis } from '@/helpers/redis';
+import { db } from "@/lib//db";
+import { fetchRedis } from "@/helpers/redis";
 
 function getGoogleCredentials() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || clientId.length === 0) {
-    throw new Error('Missing Google Client ID');
+    throw new Error("Missing Google Client ID");
   }
 
   if (!clientSecret || clientSecret.length === 0) {
-    throw new Error('Missing Google Client Secret');
+    throw new Error("Missing Google Client Secret");
   }
 
   return { clientId, clientSecret };
@@ -23,10 +23,10 @@ function getGoogleCredentials() {
 export const authOptions: NextAuthOptions = {
   adapter: UpstashRedisAdapter(db),
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: "/auth/signin",
   },
   providers: [
     GoogleProvider({
@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      const dbUserResult = (await fetchRedis('get', `user:${token.id}`)) as
+      const dbUserResult = (await fetchRedis("get", `user:${token.id}`)) as
         | string
         | null;
 
@@ -49,8 +49,8 @@ export const authOptions: NextAuthOptions = {
 
       return {
         id: dbUser.id,
-        name: dbUser.name,
         email: dbUser.email,
+        name: dbUser.name,
         picture: dbUser.image,
       };
     },
@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     redirect() {
-      return '/dashboard';
+      return "/dashboard";
     },
   },
 };
