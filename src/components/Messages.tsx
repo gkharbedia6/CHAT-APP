@@ -10,20 +10,20 @@ import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
 
 interface MessagesProps {
-  initialMessages: Message[];
+  messages: Message[];
   session: Session;
   chatPartner: User;
   chatId: string;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const Messages: FC<MessagesProps> = ({
-  initialMessages,
+  messages,
   session,
   chatPartner,
   chatId,
+  setMessages,
 }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
 
   const formatTimestamp = (timestamp: number) => {
@@ -34,17 +34,32 @@ const Messages: FC<MessagesProps> = ({
     pusherClient.subscribe(toPusherKey(`chat:${chatId}`));
 
     const newMessageHandler = (message: Message) => {
-      setMessages((prev) => [message, ...prev]);
+      setMessages((prev) => {
+        const optimisticMessageIndex = prev.findIndex(
+          (msg) =>
+            msg.id.startsWith("temp") && // Look for optimistic messages
+            msg.text === message.text && // Same content
+            msg.senderId === message.senderId // Same sender
+        );
+
+        if (optimisticMessageIndex > -1) {
+          // Replace optimistic message with the real message
+          const newMessages = [...prev];
+          newMessages[optimisticMessageIndex] = message;
+          return newMessages;
+        }
+
+        return [message, ...prev]; // Add the message normally if it's not a replacement
+      });
     };
 
     pusherClient.bind("messages", newMessageHandler);
 
     return () => {
       pusherClient.unsubscribe(toPusherKey(`chat:${chatId}`));
-
       pusherClient.unbind("messages", newMessageHandler);
     };
-  }, []);
+  }, [chatId]);
 
   return (
     <div

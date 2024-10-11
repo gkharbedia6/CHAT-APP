@@ -1,13 +1,12 @@
-import { getServerSession } from 'next-auth';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import { getServerSession } from "next-auth";
+import { notFound } from "next/navigation";
+import Image from "next/image";
 
-import { authOptions } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { fetchRedis } from '@/helpers/redis';
-import { messageArrayValidator } from '@/lib/validations/message';
-import Messages from '@/components/Messages';
-import ChatInput from '@/components/ChatInput';
+import { authOptions } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { fetchRedis } from "@/helpers/redis";
+import { messageArrayValidator } from "@/lib/validations/message";
+import ClientChat from "./clientChat";
 
 interface PageProps {
   params: {
@@ -18,7 +17,7 @@ interface PageProps {
 async function getChatMessages(chatId: string) {
   try {
     const results: string[] = await fetchRedis(
-      'zrange',
+      "zrange",
       `chat:${chatId}:messages`,
       0,
       -1
@@ -44,7 +43,7 @@ const page = async ({ params }: PageProps) => {
 
   const { user } = session;
 
-  const [userIdOne, userIdTwo] = chatId.split('--');
+  const [userIdOne, userIdTwo] = chatId.split("--");
 
   if (user.id !== userIdOne && user.id !== userIdTwo) notFound();
 
@@ -78,13 +77,12 @@ const page = async ({ params }: PageProps) => {
         </div>
       </div>
 
-      <Messages
+      <ClientChat
         initialMessages={initialMessages}
         session={session}
         chatPartner={chatPartner}
         chatId={chatId}
       />
-      <ChatInput chatPartner={chatPartner} chatId={chatId} />
     </div>
   );
 };

@@ -5,16 +5,25 @@ import TextareaAutosize from "react-textarea-autosize";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+import { Message } from "@/lib/validations/message";
 import Button from "@/ui/Button";
-import { pusherClient, pusherServer } from "@/lib/pusher";
-import { toPusherKey } from "@/lib/utils";
+// import { pusherClient, pusherServer } from "@/lib/pusher";
+// import { toPusherKey } from "@/lib/utils";
+import { Session } from "next-auth";
 
 interface ChatInputProps {
   chatPartner: User;
   chatId?: string;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  session: Session;
 }
 
-const ChatInput: FC<ChatInputProps> = ({ chatPartner, chatId }) => {
+const ChatInput: FC<ChatInputProps> = ({
+  chatPartner,
+  chatId,
+  setMessages,
+  session,
+}) => {
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -22,13 +31,30 @@ const ChatInput: FC<ChatInputProps> = ({ chatPartner, chatId }) => {
 
   const sendMessage = async () => {
     if (!input) return;
+
+    const tempId = `temp-${Date.now()}`; // Temporary ID to track optimistic message
+
+    const tempMessage = {
+      id: tempId, // Temporary ID
+      text: input,
+      senderId: session.user.id,
+      timestamp: Date.now(),
+    };
+
+    // Optimistically add message to the Messages component
+    setMessages((prev) => [tempMessage, ...prev]);
+
+    setInput("");
+    textareaRef.current?.focus();
+
     setIsLoading(true);
     try {
       await axios.post("/api/message/send", { text: input, chatId });
-      setInput("");
-      textareaRef.current?.focus();
+      // No need to update the state here since Pusher will handle the new message
     } catch (error) {
       toast.error("Something went wrong. Please try again later.");
+      // Remove the temp message from state in case of error
+      setMessages((prev) => prev.filter((message) => message.id !== tempId));
     } finally {
       setIsLoading(false);
     }
