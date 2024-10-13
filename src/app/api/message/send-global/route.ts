@@ -7,33 +7,32 @@ import { db } from "@/lib/db";
 import { Message, messageValidator } from "@/lib/validations/message";
 import { pusherServer } from "@/lib/pusher";
 import { toPusherKey } from "@/lib/utils";
+
 export async function POST(req: Request) {
   try {
-    const { text, chatId }: { text: string; chatId: string } = await req.json();
+    const { text }: { text: string } = await req.json();
 
     const session = await getServerSession(authOptions);
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const [userIdOne, userIdTwo] = chatId.split("--");
+    // if (session.user.id !== userIdOne && session.user.id !== userIdTwo) {
+    //   return new Response("Unauthorized", { status: 401 });
+    // }
 
-    if (session.user.id !== userIdOne && session.user.id !== userIdTwo) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    // const friendId = session.user.id === userIdOne ? userIdTwo : userIdOne;
 
-    const friendId = session.user.id === userIdOne ? userIdTwo : userIdOne;
+    // const friendListData = (await fetchRedis(
+    //   "smembers",
+    //   `user:${session.user.id}:friends`
+    // )) as string[];
 
-    const friendListData = (await fetchRedis(
-      "smembers",
-      `user:${session.user.id}:friends`
-    )) as string[];
+    // const isFriend = friendListData.includes(friendId);
 
-    const isFriend = friendListData.includes(friendId);
-
-    if (!isFriend) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    // if (!isFriend) {
+    //   return new Response("Unauthorized", { status: 401 });
+    // }
 
     const senderData = (await fetchRedis(
       "get",
@@ -52,11 +51,11 @@ export async function POST(req: Request) {
 
     const message = messageValidator.parse(messageData);
 
-    pusherServer.trigger(toPusherKey(`chat:${chatId}`), "messages", message);
-    await db.zadd(`chat:${chatId}:messages`, {
-      score: timestamp,
-      member: JSON.stringify(message),
-    });
+    pusherServer.trigger(toPusherKey(`global-chat`), "messages", message),
+      await db.zadd(`global-chat:messages`, {
+        score: timestamp,
+        member: JSON.stringify(message),
+      });
 
     return new Response("Message sent", { status: 200 });
   } catch (error) {

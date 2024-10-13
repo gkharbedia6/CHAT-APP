@@ -6,19 +6,16 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fetchRedis } from "@/helpers/redis";
 import { messageArrayValidator } from "@/lib/validations/message";
-import ClientChat from "./components/ClientChat";
+import ClientChat from "./[chatId]/components/ClientChat";
+import ClientChatGlobal from "./components/ClientChatGlobal";
 
-interface PageProps {
-  params: {
-    chatId: string;
-  };
-}
+interface PageProps {}
 
-async function getChatMessages(chatId: string) {
+async function getChatMessages() {
   try {
     const results: string[] = await fetchRedis(
       "zrange",
-      `chat:${chatId}:messages`,
+      `global-chat:messages`,
       0,
       -1
     );
@@ -35,21 +32,15 @@ async function getChatMessages(chatId: string) {
   }
 }
 
-const page = async ({ params }: PageProps) => {
-  const { chatId } = params;
-
+const page = async ({}: PageProps) => {
   const session = await getServerSession(authOptions);
   if (!session) notFound();
 
   const { user } = session;
 
-  const [userIdOne, userIdTwo] = chatId.split("--");
+  if (!user.id) notFound();
 
-  if (user.id !== userIdOne && user.id !== userIdTwo) notFound();
-
-  const chatPartnerId = user.id === userIdOne ? userIdTwo : userIdOne;
-  const chatPartner = (await db.get(`user:${chatPartnerId}`)) as User;
-  const initialMessages = await getChatMessages(chatId);
+  const initialMessages = await getChatMessages();
 
   return (
     <div className="flex-1 justify-between flex flex-col h-full max-h-[calc(100vh-6rem)]">
@@ -57,32 +48,27 @@ const page = async ({ params }: PageProps) => {
         <div className="relative flex items-center space-x-2">
           <div className="relative">
             <div className="relative w-8 sm:w-12 h-8 sm:h-12">
-              <Image
+              {/* <Image
                 fill
                 referrerPolicy="no-referrer"
                 src={chatPartner.image}
                 alt={`Profile picture of ${chatPartner.name}`}
                 className="rounded-full"
-              />
+              /> */}
+              <div className="w-12 aspect-square rounded-full bg-black"></div>
             </div>
           </div>
           <div className="flex flex-col leading-tight">
             <div className="flex items-center text-xl">
               <span className="text-gray-700 mr-3 font-semibold">
-                {chatPartner.name}
+                Global chat
               </span>
             </div>
-            {/* <span className="text-sm text-gray-600">{chatPartner.email}</span> */}
           </div>
         </div>
       </div>
 
-      <ClientChat
-        initialMessages={initialMessages}
-        session={session}
-        chatPartner={chatPartner}
-        chatId={chatId}
-      />
+      <ClientChatGlobal initialMessages={initialMessages} session={session} />
     </div>
   );
 };
