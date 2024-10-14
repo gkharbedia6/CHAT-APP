@@ -44,7 +44,7 @@ const page: FC<PageProps> = ({}) => {
           <Button
             isLoading={isLoading}
             type="button"
-            className="max-w-sm mx-auto w-full "
+            className="max-w-sm mx-auto w-full"
             onClick={loginWithGoogle}
           >
             {isLoading ? null : (

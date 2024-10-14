@@ -10,11 +10,13 @@ import axios from "axios";
 import MessagesGlobal from "./MessagesGlobal";
 
 interface ClientChatGlobalProps {
+  globalChatUsers: User[];
   initialMessages: Message[];
   session: Session;
 }
 
 const ClientChatGlobal = ({
+  globalChatUsers,
   initialMessages,
   session,
 }: ClientChatGlobalProps) => {
@@ -44,6 +46,7 @@ const ClientChatGlobal = ({
   return (
     <>
       <MessagesGlobal
+        globalChatUsers={globalChatUsers}
         messages={messages}
         session={session}
         setMessages={setMessages}

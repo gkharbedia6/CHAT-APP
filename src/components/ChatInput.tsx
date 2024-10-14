@@ -52,7 +52,7 @@ const ChatInput: FC<ChatInputProps> = ({ session, sendMessage }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={`Message...`}
-          className="block w-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:py-1.5 sm:leading-6 sm:text-sm"
+          className="block w-full h-full resize-none border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:py-1.5 sm:leading-6 sm:text-sm"
         />
 
         <div className="min-h-full flex-1 justify-center flex items-center py-2 pr-2">

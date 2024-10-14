@@ -42,6 +42,19 @@ const page = async ({}: PageProps) => {
 
   const initialMessages = await getChatMessages();
 
+  const globalChatUserIds = [
+    ...new Set(initialMessages.map((message) => message.senderId)),
+  ];
+  const globalChatUsers = [
+    ...new Set(
+      await Promise.all(
+        globalChatUserIds.map(async (id) => {
+          return (await db.get(`user:${id}`)) as User;
+        })
+      )
+    ),
+  ];
+
   return (
     <div className="flex-1 justify-between flex flex-col h-full max-h-[calc(100vh-6rem)]">
       <div className="flex sm:item-center justify-between py-3 px-4 border-b border-black">
@@ -68,7 +81,11 @@ const page = async ({}: PageProps) => {
         </div>
       </div>
 
-      <ClientChatGlobal initialMessages={initialMessages} session={session} />
+      <ClientChatGlobal
+        globalChatUsers={globalChatUsers}
+        initialMessages={initialMessages}
+        session={session}
+      />
     </div>
   );
 };

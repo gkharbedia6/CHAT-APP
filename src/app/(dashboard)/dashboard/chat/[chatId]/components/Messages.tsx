@@ -8,6 +8,7 @@ import { Session } from "next-auth";
 import { Message } from "@/lib/validations/message";
 import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
+import { Divide } from "lucide-react";
 
 interface MessagesProps {
   messages: Message[];
@@ -111,28 +112,25 @@ const Messages: FC<MessagesProps> = ({
                   </span>
                 </span>
               </div>
-
-              <div
-                className={cn("relative w-6 h-6", {
-                  "order-2": isCurrentUser,
-                  "order-1": !isCurrentUser,
-                  invisible: hasNextMessageFromSameUser,
-                })}
-              >
-                <Image
-                  fill
-                  referrerPolicy="no-referrer"
-                  className="rounded-full"
-                  src={
-                    isCurrentUser
-                      ? (session.user.image as string)
-                      : (chatPartner.image as string)
-                  }
-                  alt={`Profile picture of ${
-                    isCurrentUser ? session.user.name : chatPartner.name
-                  }`}
-                />
-              </div>
+              {!isCurrentUser ? (
+                <div
+                  className={cn("relative w-6 h-6", {
+                    "order-2": isCurrentUser,
+                    "order-1": !isCurrentUser,
+                    invisible: hasNextMessageFromSameUser,
+                  })}
+                >
+                  <Image
+                    fill
+                    referrerPolicy="no-referrer"
+                    className="rounded-full"
+                    src={chatPartner.image as string}
+                    alt={`Profile picture of ${
+                      isCurrentUser ? session.user.name : chatPartner.name
+                    }`}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         );
