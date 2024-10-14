@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fetchRedis } from "@/helpers/redis";
 import { messageArrayValidator } from "@/lib/validations/message";
-import ClientChat from "./[chatId]/components/ClientChat";
 import ClientChatGlobal from "./components/ClientChatGlobal";
 
 interface PageProps {}

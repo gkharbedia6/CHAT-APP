@@ -4,6 +4,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { format, set } from "date-fns";
 import Image from "next/image";
 import { Session } from "next-auth";
+import { Reply, SmileIcon } from "lucide-react";
 
 import { Message } from "@/lib/validations/message";
 import { cn, toPusherKey } from "@/lib/utils";
@@ -23,28 +24,11 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   setMessages,
 }) => {
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
+  const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<string | null>(
+    null
+  );
 
-  const formatTimestamp = (timestamp: number) => {
-    const now = new Date().getTime();
-    const timeDiff = now - timestamp;
-    const tenMinutes = 10 * 60 * 1000;
-    const oneDay = 24 * 60 * 60 * 1000;
-    const oneWeek = 7 * oneDay;
-
-    if (timeDiff < tenMinutes) return; // Do not show timestamp if it's within 10 minutes
-    if (timeDiff < oneDay) return format(timestamp, "HH:mm"); // Show time if within the day
-    if (timeDiff < oneWeek) return format(timestamp, "EEEE"); // Show day of the week if within the current week
-    return format(timestamp, "dd/MM/yyyy"); // Show date otherwise
-  };
-  const shouldShowTimestamp = (
-    currentMessage: Message,
-    previousMessage?: Message
-  ) => {
-    if (!previousMessage) return true; // Show timestamp for the first message
-    const timeDiff = previousMessage.timestamp - currentMessage.timestamp;
-    // console.log(previousMessage.timestamp - currentMessage.timestamp);
-    return timeDiff > 10 * 60 * 1000; // Show timestamp if more than 10 minutes have passed
-  };
+  console.log(messages);
 
   useEffect(() => {
     pusherClient.subscribe(toPusherKey(`global-chat`));
@@ -80,13 +64,11 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   return (
     <div
       id="messages"
-      className="flex h-full flex-1 flex-col-reverse py-6 px-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-hidden"
+      className="flex h-full flex-1 flex-col-reverse py-6 px-3 gap-[2px] overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-hidden"
     >
       <div ref={scrollDownRef} />
       {messages.map((message, index) => {
         const isCurrentUser = message.senderId === session.user.id;
-
-        const previousMessage = messages[index - 1];
 
         const hasNextMessageFromSameUser =
           messages[index - 1]?.senderId === messages[index].senderId;
@@ -99,74 +81,82 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
             className="chat-message"
             key={`${message.id}-${message.timestamp}`}
           >
-            {shouldShowTimestamp(message, previousMessage) && (
-              <p className="text-center text-xs text-gray-400 py-5 px-4">
-                {formatTimestamp(message.timestamp)}
-              </p>
-            )}
-
+            <p
+              className={cn("text-xs  ml-12 mt-3 text-gray-400 py-2", {
+                hidden: hasPreviousMessageFromSameUser || isCurrentUser,
+              })}
+            >
+              {
+                globalChatUsers
+                  .find((user) => user.id === message.senderId)
+                  ?.name.split(" ")[0]
+              }
+            </p>
             <div
-              className={cn("flex items-end", {
+              onMouseEnter={() => setMessegeSettingsOpen(message.id)}
+              onMouseLeave={() => setMessegeSettingsOpen(null)}
+              className={cn("flex items-end relative", {
                 "justify-end": isCurrentUser,
               })}
             >
               <div
-                className={cn(
-                  "flex flex-col space-y-[2px] text-base max-w-xs mx-2",
-                  {
-                    "order-1 items-end": isCurrentUser,
-                    "order-2 items-start": !isCurrentUser,
-                  }
-                )}
+                className={cn("flex text-base max-w-xs mx-2", {
+                  "order-1 items-center gap-3 flex-row-reverse ": isCurrentUser,
+                  "order-2 items-center gap-3 flex-row": !isCurrentUser,
+                })}
               >
-                <p
-                  className={cn(
-                    "text-xs ml-2 mt-3 text-gray-400 inline-block py-2",
-                    {
-                      hidden: hasPreviousMessageFromSameUser || isCurrentUser,
-                    }
-                  )}
-                >
-                  {
-                    globalChatUsers
-                      .find((user) => user.id === message.senderId)
-                      ?.name.split(" ")[0]
-                  }
-                </p>
                 <span
                   className={cn(
-                    "px-4 py-2 rounded-full inline-block max-w-full break-words", // Add break-words
+                    "px-4 py-2 rounded-[24px] inline-block max-w-full break-words", // Add break-words
                     {
                       "bg-indigo-600 text-white": isCurrentUser,
                       "bg-gray-200 text-gray-900": !isCurrentUser,
-                      "rounded-tr-md":
-                        !hasNextMessageFromSameUser && isCurrentUser,
-                      "rounded-br-md":
-                        !hasPreviousMessageFromSameUser && isCurrentUser,
-                      "rounded-tr-md rounded-br-md":
-                        hasPreviousMessageFromSameUser &&
+                      "rounded-tl-none rounded-bl-none":
                         hasNextMessageFromSameUser &&
-                        isCurrentUser,
-                      "rounded-tl-md":
-                        !hasNextMessageFromSameUser && !isCurrentUser,
-                      "rounded-bl-md":
-                        !hasPreviousMessageFromSameUser && !isCurrentUser,
-                      "rounded-tl-md rounded-bl-md":
                         hasPreviousMessageFromSameUser &&
-                        hasNextMessageFromSameUser &&
                         !isCurrentUser,
-                      "rounded-full":
-                        (!hasPreviousMessageFromSameUser &&
-                          !hasNextMessageFromSameUser &&
-                          isCurrentUser) ||
-                        (!hasPreviousMessageFromSameUser &&
-                          !hasNextMessageFromSameUser &&
-                          !isCurrentUser),
+                      "rounded-tl-none":
+                        !hasNextMessageFromSameUser && !isCurrentUser,
+                      "rounded-bl-none":
+                        !hasPreviousMessageFromSameUser && !isCurrentUser,
+                      "rounded-tr-none rounded-br-none":
+                        hasNextMessageFromSameUser &&
+                        hasPreviousMessageFromSameUser &&
+                        isCurrentUser,
+                      "rounded-tr-none":
+                        !hasNextMessageFromSameUser && isCurrentUser,
+                      "rounded-br-none":
+                        !hasPreviousMessageFromSameUser && isCurrentUser,
                     }
                   )}
                 >
                   {message.text}
                 </span>
+                {messegeSettingsOpen === message.id && (
+                  <div
+                    className={cn("flex items-center", {
+                      "left-[90px] flex-row justify-start":
+                        message.senderId !== session.user.id,
+                      "right-[90px] flex-row-reverse justify-end":
+                        message.senderId === session.user.id,
+                    })}
+                  >
+                    <div
+                      className={cn(
+                        "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                      )}
+                    >
+                      <SmileIcon className="w-5 " />
+                    </div>
+                    <div
+                      className={cn(
+                        "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                      )}
+                    >
+                      <Reply className="w-5 " />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {!isCurrentUser ? (
