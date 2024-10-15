@@ -54,17 +54,23 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
     }
   };
 
+  // const handleMouseLeave = () => {
+  //   if (!isEmojiPickerOpen) {
+  //     // Only reset hover when emoji picker is not open
+  //     setMessegeSettingsOpen(null);
+  //   } else {
+  //     // When emoji picker is open, reset the hovered message but keep the picker open
+  //     setMessegeSettingsOpen((prev) => {
+  //       const [pickerId] = prev || [];
+  //       return pickerId ? [pickerId] : null;
+  //     });
+  //   }
+  // };
   const handleMouseLeave = () => {
     if (!isEmojiPickerOpen) {
-      // Only reset hover when emoji picker is not open
-      setMessegeSettingsOpen(null);
-    } else {
-      // When emoji picker is open, reset the hovered message but keep the picker open
-      setMessegeSettingsOpen((prev) => {
-        const [pickerId] = prev || [];
-        return pickerId ? [pickerId] : null;
-      });
+      setMessegeSettingsOpen(null); // Reset when leaving if emoji picker is not open
     }
+    // When emoji picker is open, do not reset the settings
   };
 
   const handleEmojiPickerClick = (messageId: string) => {
@@ -104,17 +110,25 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       });
     };
     const handleClickOutside = (event: MouseEvent) => {
-      if (isEmojiPickerOpen) {
-        setMessegeSettingsOpen([]);
-      }
-      // If emoji picker is open and clicked outside of it, close the picker
       if (
         emojiPickerRef.current &&
         !emojiPickerRef.current.contains(event.target as Node)
       ) {
-        setIsEmojiPickerOpen(null);
+        setIsEmojiPickerOpen(null); // Close emoji picker
+
+        // Check if any message settings are open
+        if (messegeSettingsOpen && messegeSettingsOpen.length > 0) {
+          // If you clicked outside while settings are open, keep the last one open
+          const lastOpenMessageId =
+            messegeSettingsOpen[messegeSettingsOpen.length - 1];
+          setMessegeSettingsOpen([lastOpenMessageId]); // Keep the last message's settings open
+        } else {
+          // Otherwise, reset settings open state
+          setMessegeSettingsOpen(null);
+        }
       }
     };
+
     document.addEventListener("click", handleClickOutside);
 
     pusherClient.bind("messages", newMessageHandler);
@@ -124,7 +138,13 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       pusherClient.unbind("messages", newMessageHandler);
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isEmojiPickerOpen, setIsEmojiPickerOpen, setMessages]);
+  }, [
+    isEmojiPickerOpen,
+    setIsEmojiPickerOpen,
+    setMessages,
+    setMessegeSettingsOpen,
+    messegeSettingsOpen,
+  ]);
 
   return (
     <div
