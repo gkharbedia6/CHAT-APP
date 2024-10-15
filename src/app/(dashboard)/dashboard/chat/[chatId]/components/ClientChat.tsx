@@ -54,7 +54,7 @@ const ClientChat = ({
         setMessages={setMessages}
         chatId={chatId}
       />
-      <ChatInput sendMessage={sendMessage} session={session} />
+      {/* <ChatInput sendMessage={sendMessage} session={session} /> */}
     </>
   );
 };

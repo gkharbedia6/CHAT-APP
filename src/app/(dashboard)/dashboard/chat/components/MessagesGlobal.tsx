@@ -11,6 +11,7 @@ import { pusherClient } from "@/lib/pusher";
 import { ReplyTo } from "./ClientChatGlobal";
 import Tooltip from "@/components/ui/Tooltip";
 import EmojiPicker from "emoji-picker-react";
+import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
@@ -30,13 +31,55 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   setReplyTo,
 }) => {
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
-  const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<string | null>(
-    null
-  );
+  const { isSettingsModalOpen, setIsSettingsModalOpen } =
+    useSettingsModalContext();
+  const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<
+    string[] | null
+  >(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<string | null>(
     null
   );
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleMouseEnter = (messageId: string) => {
+    if (!isEmojiPickerOpen) {
+      // If emoji picker is not open, replace the message being hovered
+      setMessegeSettingsOpen([messageId]);
+    } else if (!messegeSettingsOpen?.includes(messageId)) {
+      // If emoji picker is open, keep the message ID that opened it and add the new hovered message temporarily
+      setMessegeSettingsOpen((prev) => {
+        const [pickerId] = prev || [];
+        return pickerId ? [pickerId, messageId] : [messageId];
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isEmojiPickerOpen) {
+      // Only reset hover when emoji picker is not open
+      setMessegeSettingsOpen(null);
+    } else {
+      // When emoji picker is open, reset the hovered message but keep the picker open
+      setMessegeSettingsOpen((prev) => {
+        const [pickerId] = prev || [];
+        return pickerId ? [pickerId] : null;
+      });
+    }
+  };
+
+  const handleEmojiPickerClick = (messageId: string) => {
+    setIsEmojiPickerOpen((prev) => {
+      if (prev === messageId) {
+        // Close emoji picker if clicked again
+        setMessegeSettingsOpen([messageId]);
+        return null;
+      } else {
+        // Open new emoji picker, close previous settings
+        setMessegeSettingsOpen([messageId]);
+        return messageId;
+      }
+    });
+  };
 
   useEffect(() => {
     pusherClient.subscribe(toPusherKey(`global-chat`));
@@ -61,8 +104,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       });
     };
     const handleClickOutside = (event: MouseEvent) => {
+      if (isEmojiPickerOpen) {
+        setMessegeSettingsOpen([]);
+      }
       // If emoji picker is open and clicked outside of it, close the picker
-      console.log("click");
       if (
         emojiPickerRef.current &&
         !emojiPickerRef.current.contains(event.target as Node)
@@ -79,7 +124,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       pusherClient.unbind("messages", newMessageHandler);
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isEmojiPickerOpen, setIsEmojiPickerOpen]);
+  }, [isEmojiPickerOpen, setIsEmojiPickerOpen, setMessages]);
 
   return (
     <div
@@ -116,8 +161,8 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
               }
             </p>
             <div
-              onMouseEnter={() => setMessegeSettingsOpen(message.id)}
-              // onMouseLeave={() => setMessegeSettingsOpen(null)}
+              onMouseEnter={() => handleMouseEnter(message.id)}
+              onMouseLeave={() => handleMouseLeave()}
               className={cn("flex items-end relative", {
                 "justify-end": isCurrentUser,
               })}
@@ -212,7 +257,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                   >
                     {message.text}
                   </span>
-                  {messegeSettingsOpen === message.id && (
+                  {messegeSettingsOpen?.find((id) => id === message.id) && (
                     <div
                       className={cn("flex items-center gap-[2px]", {
                         "left-[90px] flex-row justify-start":
@@ -228,10 +273,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         align="center"
                         content={"React"}
                         arrowColor="text-rich_gray-900"
-                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
+                        className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
-                          onClick={() => setIsEmojiPickerOpen(message.id)}
+                          onClick={() => handleEmojiPickerClick(message.id)}
                           className={cn(
                             "p-1 relative cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}
@@ -239,7 +284,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                           {isEmojiPickerOpen === message.id && (
                             <div
                               ref={emojiPickerRef}
-                              className={cn("absolute  bottom-7 z-5", {
+                              className={cn("absolute bottom-7 z-20", {
                                 "right-0": isCurrentUser,
                                 "left-0": !isCurrentUser,
                               })}
@@ -265,7 +310,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         side="top"
                         align="center"
                         arrowColor="text-rich_gray-900"
-                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
+                        className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
                           onClick={() => {
@@ -291,9 +336,12 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         align="center"
                         content={"More"}
                         arrowColor="text-rich_gray-900"
-                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
+                        className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
+                          onClick={() => {
+                            setIsSettingsModalOpen(message.id);
+                          }}
                           className={cn(
                             "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}

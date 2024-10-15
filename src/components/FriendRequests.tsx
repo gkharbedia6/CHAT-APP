@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import axios from 'axios';
-import { Check, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { FC, useEffect, useState } from 'react';
-import Image from 'next/image';
+import axios from "axios";
+import { Check, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FC, useEffect, useState } from "react";
+import Image from "next/image";
 
-import Button from '@/ui/Button';
-import { pusherClient } from '@/lib/pusher';
-import { toPusherKey } from '@/lib/utils';
+import Button from "@/ui/Button";
+import { pusherClient } from "@/lib/pusher";
+import { toPusherKey } from "@/lib/utils";
 
 interface FriendRequestsProps {
   incomingFriendRequests: IncomingFriendRequest[];
@@ -39,18 +39,18 @@ const FriendRequests: FC<FriendRequestsProps> = ({
       setIncomingRequests((prev) => [...prev, user]);
     };
 
-    pusherClient.bind('incoming_friend_requests', friendRequestHandler);
+    pusherClient.bind("incoming_friend_requests", friendRequestHandler);
 
     return () => {
       pusherClient.unsubscribe(
         toPusherKey(`user:${sessionId}:incoming_friend_requests`)
       );
-      pusherClient.unbind('incoming_friend_requests', friendRequestHandler);
+      pusherClient.unbind("incoming_friend_requests", friendRequestHandler);
     };
-  }, []);
+  }, [sessionId]);
 
   const acceptFriend = async (senderId: string) => {
-    await axios.post('/api/friends/accept', { id: senderId });
+    await axios.post("/api/friends/accept", { id: senderId });
     setIncomingRequests((prev) =>
       prev.filter((friendRequest) => friendRequest.id !== senderId)
     );
@@ -58,7 +58,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
   };
 
   const denyFriend = async (senderId: string) => {
-    await axios.post('/api/friends/deny', { id: senderId });
+    await axios.post("/api/friends/deny", { id: senderId });
     setIncomingRequests((prev) =>
       prev.filter((friendRequest) => friendRequest.id !== senderId)
     );
@@ -66,7 +66,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
   };
 
   const cancelRequest = async (receiverId: string) => {
-    await axios.post('/api/friends/cancel', { id: receiverId });
+    await axios.post("/api/friends/cancel", { id: receiverId });
     setOutgoingRequests((prev) =>
       prev.filter((friendRequest) => friendRequest.id !== receiverId)
     );
@@ -92,7 +92,7 @@ const FriendRequests: FC<FriendRequestsProps> = ({
                   fill
                   referrerPolicy="no-referrer"
                   className="rounded-full"
-                  src={incomingRequest.image ?? ''}
+                  src={incomingRequest.image ?? ""}
                   alt={`Profile picture of ${incomingRequest.name}`}
                 />
               </div>
@@ -138,14 +138,14 @@ const FriendRequests: FC<FriendRequestsProps> = ({
                   fill
                   referrerPolicy="no-referrer"
                   className="rounded-full"
-                  src={outgoingRequest.image ?? ''}
+                  src={outgoingRequest.image ?? ""}
                   alt={`Profile picture of ${outgoingRequest.name}`}
                 />
               </div>
               <p className="font-medium text-lg">{outgoingRequest.name}</p>
               <Button
-                variant={'default'}
-                size={'sm'}
+                variant={"default"}
+                size={"sm"}
                 className="bg-indigo-500 w-fit hover:bg-indigo-600 transition hover:shadow-md "
                 onClick={() => cancelRequest(outgoingRequest.id)}
               >

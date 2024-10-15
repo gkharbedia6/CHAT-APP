@@ -28,9 +28,9 @@ const page: FC<PageProps> = ({}) => {
       <div className="w-[50%] h-full bg-rich_gray-900 flex flex-col justify-between px-10 py-14 text-white font-normal">
         <h2 className="text-xl">ChatApp</h2>
         <h3>
-          "Chat with random character about random stuff. Become friend based on
-          the personality and 0 information about the actual human being behind
-          it."
+          `&quot;`Chat with random character about random stuff. Become friend
+          based on the personality and 0 information about the actual human
+          being behind it.`&quot;`
         </h3>
       </div>
 
