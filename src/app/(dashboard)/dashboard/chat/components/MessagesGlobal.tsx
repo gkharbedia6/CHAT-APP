@@ -1,15 +1,15 @@
 "use client";
 
 import { FC, useEffect, useRef, useState } from "react";
-import { format, set } from "date-fns";
 import Image from "next/image";
 import { Session } from "next-auth";
-import { Reply, SmileIcon } from "lucide-react";
+import { Reply, SmileIcon, MoreVerticalIcon } from "lucide-react";
 
 import { Message } from "@/lib/validations/message";
 import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
 import { ReplyTo } from "./ClientChatGlobal";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
@@ -32,7 +32,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<string | null>(
     null
   );
-  console.log(messages);
 
   useEffect(() => {
     pusherClient.subscribe(toPusherKey(`global-chat`));
@@ -94,9 +93,9 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
               })}
             >
               {
-                globalChatUsers
-                  .find((user) => user.id === message.senderId)
-                  ?.name.split(" ")[0]
+                // ?.name.split(" ")[0]
+                globalChatUsers.find((user) => user.id === message.senderId)
+                  ?.name
               }
             </p>
             <div
@@ -164,9 +163,9 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                 ) : null}
                 <div
                   className={cn("flex text-base max-w-xs mx-2", {
-                    "order-1 items-center gap-3 flex-row-reverse ":
+                    "order-1 items-center gap-1 flex-row-reverse ":
                       isCurrentUser,
-                    "order-2 items-center gap-3 flex-row": !isCurrentUser,
+                    "order-2 items-center gap-1 flex-row": !isCurrentUser,
                   })}
                 >
                   <span
@@ -198,35 +197,68 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                   </span>
                   {messegeSettingsOpen === message.id && (
                     <div
-                      className={cn("flex items-center", {
+                      className={cn("flex items-center gap-[2px]", {
                         "left-[90px] flex-row justify-start":
                           message.senderId !== session.user.id,
                         "right-[90px] flex-row-reverse justify-end":
                           message.senderId === session.user.id,
                       })}
                     >
-                      <div
-                        className={cn(
-                          "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
-                        )}
+                      <Tooltip
+                        side="top"
+                        align="center"
+                        content={"React"}
+                        arrowColor="text-rich_gray-900"
+                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
-                        <SmileIcon className="w-5 h-5" />
-                      </div>
-                      <div
-                        onClick={() => {
-                          setIsReplying(true);
-                          setReplyTo({
-                            text: message.text,
-                            replyToUserId: message.senderId,
-                            replyToMessegeId: message.id,
-                          });
-                        }}
-                        className={cn(
-                          "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
-                        )}
+                        <div
+                          className={cn(
+                            "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                          )}
+                        >
+                          <SmileIcon className="w-4 h-4" />
+                        </div>
+                      </Tooltip>
+
+                      <Tooltip
+                        content={"Reply"}
+                        side="top"
+                        align="center"
+                        arrowColor="text-rich_gray-900"
+                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
-                        <Reply className="w-5 h-5" />
-                      </div>
+                        <div
+                          onClick={() => {
+                            setIsReplying(true);
+                            setReplyTo({
+                              text: message.text,
+                              replyToUserId: message.senderId,
+                              replyToMessegeId: message.id,
+                            });
+                          }}
+                          className={cn(
+                            "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                          )}
+                        >
+                          <Reply className="w-4 h-4" />
+                        </div>
+                      </Tooltip>
+
+                      <Tooltip
+                        side="top"
+                        align="center"
+                        content={"More"}
+                        arrowColor="text-rich_gray-900"
+                        className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
+                      >
+                        <div
+                          className={cn(
+                            "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                          )}
+                        >
+                          <MoreVerticalIcon className="w-4 h-4" />
+                        </div>
+                      </Tooltip>
                     </div>
                   )}
                 </div>

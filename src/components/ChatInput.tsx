@@ -61,12 +61,15 @@ const ChatInput: FC<ChatInputProps> = ({
         <div className="h-10 w-full pt-2 mb-4">
           <div className="flex w-full flex-row justify-between px-4 items-center">
             <p className="text-sm">
-              Replying to {replyToUser?.name.split(" ")[0]}
+              Replying to{" "}
+              {replyToUser?.id === session.user.id
+                ? "yourself"
+                : replyToUser?.name}
             </p>
             <div
               onClick={() => setIsReplying(false)}
               className={cn(
-                "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900  hover:text-indigo-600"
+                "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900  hover:text-indigo-600"
               )}
             >
               <X className="w-4 h-4" />
