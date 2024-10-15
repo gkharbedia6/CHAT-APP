@@ -10,7 +10,12 @@ import { toPusherKey } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
-    const { text }: { text: string } = await req.json();
+    const {
+      text,
+      replyToUserId,
+      replyToMessegeId,
+    }: { text: string; replyToUserId: string; replyToMessegeId: string } =
+      await req.json();
 
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -47,6 +52,8 @@ export async function POST(req: Request) {
       senderId: session.user.id,
       text,
       timestamp,
+      replyToUserId,
+      replyToMessegeId,
     };
 
     const message = messageValidator.parse(messageData);

@@ -8,7 +8,6 @@ import { Session } from "next-auth";
 import { Message } from "@/lib/validations/message";
 import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
-import { Divide } from "lucide-react";
 
 interface MessagesProps {
   messages: Message[];

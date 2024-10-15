@@ -77,7 +77,7 @@ const layout = async ({ children }: LayoutProps) => {
                 />
               </li>
               <li>
-                <div className="t-xs font-semibold leading-6 text-gray-200">
+                <div className="text-xs font-semibold leading-6 text-gray-400">
                   Overview
                 </div>
                 <ul role="list" className="-mx-2 mt-2 space-y-1">
@@ -120,7 +120,7 @@ const layout = async ({ children }: LayoutProps) => {
                   <span className="sr-only">Your profile</span>
                   <div className="flex flex-col">
                     <span aria-hidden="true">{session.user.name}</span>
-                    <span className="text-xs text-gray-200" aria-hidden="true">
+                    <span className="text-xs text-gray-400" aria-hidden="true">
                       {session.user.email}
                     </span>
                   </div>

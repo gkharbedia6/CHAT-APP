@@ -1,18 +1,34 @@
 "use client";
 
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+import { X } from "lucide-react";
 
 import { Message } from "@/lib/validations/message";
 import Button from "@/ui/Button";
 import { Session } from "next-auth";
+import { cn } from "@/lib/utils";
+import { ReplyTo } from "@/app/(dashboard)/dashboard/chat/components/ClientChatGlobal";
 
 interface ChatInputProps {
   session: Session;
   sendMessage: (message: Message, input: string, tempId: string) => void;
+  isReplying: boolean;
+  setIsReplying: React.Dispatch<React.SetStateAction<boolean>>;
+  setReplyTo: React.Dispatch<React.SetStateAction<ReplyTo | null>>;
+  replyToUser: User | undefined;
+  replyText: string | undefined;
 }
 
-const ChatInput: FC<ChatInputProps> = ({ session, sendMessage }) => {
+const ChatInput: FC<ChatInputProps> = ({
+  session,
+  sendMessage,
+  isReplying,
+  setIsReplying,
+  setReplyTo,
+  replyToUser,
+  replyText,
+}) => {
   const [input, setInput] = useState<string>("");
   // const [isLoading, setIsLoading] = useState<boolean>(false);
   // const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -23,11 +39,13 @@ const ChatInput: FC<ChatInputProps> = ({ session, sendMessage }) => {
 
     const tempId = `temp-${Date.now()}`; // Temporary ID to track optimistic message
 
-    const tempMessage = {
+    const tempMessage: Message = {
       id: tempId, // Temporary ID
       text: input,
       senderId: session.user.id,
       timestamp: Date.now(),
+      replyToUserId: "",
+      replyToMessegeId: "",
     };
 
     sendMessage(tempMessage, input, tempId);
@@ -38,14 +56,38 @@ const ChatInput: FC<ChatInputProps> = ({ session, sendMessage }) => {
 
   return (
     // <div className="border-t border-black px-4 pt-4 mb-2 sm:mb-4">
-    <div>
-      <div className="relative flex-1 overflow-hidden flex justify-between min-h-14 shadow-sm ring-none border-t border-black focus-within:ring-none">
+    <div className="flex flex-col border-t border-black ">
+      {isReplying && (
+        <div className="h-10 w-full pt-2 mb-4">
+          <div className="flex w-full flex-row justify-between px-4 items-center">
+            <p className="text-sm">
+              Replying to {replyToUser?.name.split(" ")[0]}
+            </p>
+            <div
+              onClick={() => setIsReplying(false)}
+              className={cn(
+                "p-2 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900  hover:text-indigo-600"
+              )}
+            >
+              <X className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex w-full flex-row justify-start px-4 text-xs text-gray-400">
+            {replyText}
+          </div>
+        </div>
+      )}
+      <div className="relative flex-1  overflow-hidden flex justify-between min-h-14 shadow-sm ring-none focus-within:ring-none">
         <TextareaAutosize
+          autoFocus={true}
+          onBlur={({ target }) => target.focus()}
           ref={textareaRef}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               onSendMessage();
+              () => setIsReplying(false);
+              () => setReplyTo(null);
             }
           }}
           rows={1}
