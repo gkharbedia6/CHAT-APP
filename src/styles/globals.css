@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.epr-header {
+  display: none;
+}
+
+.epr_-kg0voo {
+  display: none !important;
+}
+
+.epr_-6dchwm {
+  position: static !important;
+}
+
+.epr-emoji-category-label {
+  font-size: 14px !important;
+  color: #4b5563;
+}
+
+/* ::-webkit-scrollbar {
+  display: none;
+}
+
+-webkit-scrollbar {
+  display: none;
+} */

@@ -47,7 +47,7 @@ const layout = async ({ children }: LayoutProps) => {
 
   return (
     <div className="w-full flex h-screen items-center justify-center ">
-      <div className="w-[80%] h-[70%]  flex border border-black shadow-md">
+      <div className="w-[95%] h-[95%]  flex border border-black shadow-md">
         <div className="flex h-full w-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-black  p-6">
           <Link href="/dashboard" className="flex h-16 shrink-0 items-center">
             <Icons.Logo className="h-8 w-auto text-rich_gray-900" />

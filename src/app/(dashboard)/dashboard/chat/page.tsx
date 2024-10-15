@@ -55,7 +55,7 @@ const page = async ({}: PageProps) => {
   ];
 
   return (
-    <div className="flex-1 justify-between flex flex-col h-full max-h-[calc(100vh-6rem)]">
+    <div className="flex-1 justify-between flex flex-col h-full ">
       <div className="flex sm:item-center justify-between py-3 px-4 border-b border-black">
         <div className="relative flex items-center space-x-2">
           <div className="relative">

@@ -10,6 +10,7 @@ import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
 import { ReplyTo } from "./ClientChatGlobal";
 import Tooltip from "@/components/ui/Tooltip";
+import EmojiPicker from "emoji-picker-react";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
@@ -32,6 +33,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<string | null>(
     null
   );
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<string | null>(
+    null
+  );
+  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     pusherClient.subscribe(toPusherKey(`global-chat`));
@@ -55,14 +60,26 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
         return [message, ...prev]; // Add the message normally if it's not a replacement
       });
     };
+    const handleClickOutside = (event: MouseEvent) => {
+      // If emoji picker is open and clicked outside of it, close the picker
+      console.log("click");
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setIsEmojiPickerOpen(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
 
     pusherClient.bind("messages", newMessageHandler);
 
     return () => {
       pusherClient.unsubscribe(toPusherKey(`global-chat`));
       pusherClient.unbind("messages", newMessageHandler);
+      document.removeEventListener("click", handleClickOutside);
     };
-  }, []);
+  }, [isEmojiPickerOpen, setIsEmojiPickerOpen]);
 
   return (
     <div
@@ -100,7 +117,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
             </p>
             <div
               onMouseEnter={() => setMessegeSettingsOpen(message.id)}
-              onMouseLeave={() => setMessegeSettingsOpen(null)}
+              // onMouseLeave={() => setMessegeSettingsOpen(null)}
               className={cn("flex items-end relative", {
                 "justify-end": isCurrentUser,
               })}
@@ -205,6 +222,8 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                       })}
                     >
                       <Tooltip
+                        delayDuration={0}
+                        skipDelayDuration={0}
                         side="top"
                         align="center"
                         content={"React"}
@@ -212,15 +231,36 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         className="bg-rich_gray-900 relative z-10 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
+                          onClick={() => setIsEmojiPickerOpen(message.id)}
                           className={cn(
-                            "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                            "p-1 relative cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}
                         >
+                          {isEmojiPickerOpen === message.id && (
+                            <div
+                              ref={emojiPickerRef}
+                              className={cn("absolute  bottom-7 z-5", {
+                                "right-0": isCurrentUser,
+                                "left-0": !isCurrentUser,
+                              })}
+                            >
+                              <EmojiPicker
+                                searchDisabled={true}
+                                skinTonesDisabled={true}
+                                // lazyLoadEmojis={true}
+                                width={340}
+                                height={325}
+                                className="shadow-md bg-red-300"
+                              />
+                            </div>
+                          )}
                           <SmileIcon className="w-4 h-4" />
                         </div>
                       </Tooltip>
 
                       <Tooltip
+                        delayDuration={0}
+                        skipDelayDuration={0}
                         content={"Reply"}
                         side="top"
                         align="center"
@@ -245,6 +285,8 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                       </Tooltip>
 
                       <Tooltip
+                        delayDuration={0}
+                        skipDelayDuration={0}
                         side="top"
                         align="center"
                         content={"More"}

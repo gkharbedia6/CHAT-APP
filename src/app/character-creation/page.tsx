@@ -1,3 +1,7 @@
+"use client";
+
+import EmojiPicker from "emoji-picker-react";
+
 const page = () => {
   return (
     <>

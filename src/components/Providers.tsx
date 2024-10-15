@@ -11,10 +11,10 @@ interface ProvidersProps {
 const Providers: FC<ProvidersProps> = ({ children }) => {
   return (
     <>
-      <TooltipProvider delayDuration={500} skipDelayDuration={200}>
-        <Toaster position="top-center" reverseOrder={false} />
-        {children}
-      </TooltipProvider>
+      {/* <TooltipProvider delayDuration={500} skipDelayDuration={200}> */}
+      <Toaster position="top-center" reverseOrder={false} />
+      {children}
+      {/* </TooltipProvider> */}
     </>
   );
 };
