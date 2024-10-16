@@ -74,7 +74,12 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       });
     }
   };
-
+  const handleScrollEvents = () => {
+    if (!isEmojiPickerOpen && !moreSettingsOpen) {
+      updateEmojiIconPosition();
+      updateMoreSettingsIconPosition();
+    }
+  };
   // Function to get the emojiIconPosition of the element
   const updateEmojiIconPosition = () => {
     if (emojiPickerIconRef.current) {
@@ -96,6 +101,29 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
         right: rect.right,
         bottom: rect.bottom,
       });
+    }
+  };
+
+  const checkComponentVisibility = () => {
+    if (isEmojiPickerOpen || moreSettingsOpen) {
+      const emojiPickerElement = emojiPickerRef.current;
+      const moreSettingsElement = moreSettingsRef.current;
+
+      if (emojiPickerElement) {
+        const rect = emojiPickerElement.getBoundingClientRect();
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          setIsEmojiPickerOpen(null);
+          setMessageSettingsOpened(null);
+        }
+      }
+
+      if (moreSettingsElement) {
+        const rect = moreSettingsElement.getBoundingClientRect();
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          setMoreSettingsOpen(null);
+          setMessageSettingsOpened(null);
+        }
+      }
     }
   };
 
@@ -138,14 +166,9 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   };
 
   useEffect(() => {
-    updateEmojiIconPosition();
-    updateMoreSettingsIconPosition();
-
-    window.addEventListener("scroll", () => {
-      updateEmojiIconPosition();
-      updateMoreSettingsIconPosition();
-    });
-
+    handleScrollEvents();
+    checkComponentVisibility();
+    //pusher
     pusherClient.subscribe(toPusherKey(`global-chat`));
 
     const newMessageHandler = (message: Message) => {
@@ -168,6 +191,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       });
     };
 
+    //click outside
     const handleClickOutside = (event: MouseEvent) => {
       if (
         emojiPickerRef.current &&
@@ -204,7 +228,13 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       }
     };
 
+    //event listeners
     document.addEventListener("click", handleClickOutside);
+    window.addEventListener("scroll", () => {
+      checkComponentVisibility();
+      updateEmojiIconPosition();
+      updateMoreSettingsIconPosition();
+    });
 
     pusherClient.bind("messages", newMessageHandler);
 
@@ -215,6 +245,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       window.removeEventListener("scroll", () => {
         updateEmojiIconPosition();
         updateMoreSettingsIconPosition();
+        checkComponentVisibility();
       });
     };
   }, [
@@ -263,7 +294,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
             </p>
             <div
               onMouseEnter={() => handleMouseEnter(message.id)}
-              // onMouseLeave={() => handleMouseLeave()}
+              onMouseLeave={() => handleMouseLeave()}
               className={cn("flex items-end relative", {
                 "justify-end": isCurrentUser,
               })}
@@ -372,7 +403,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                           message.senderId === session.user.id,
                       })}
                     >
-                      {" "}
                       {isEmojiPickerOpen === message.id && (
                         <div
                           ref={emojiPickerRef}
