@@ -54,17 +54,24 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const [emojiIconPosition, setEmojiIconPosition] = useState({
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
   });
   const [moreSettingIconPosition, setMoreSettingIconPosition] = useState({
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
   });
 
   const scrollToMessage = (messageId: string | undefined) => {
     if (!messageId) return;
     const messageElement = messageRefs.current[messageId];
     if (messageElement) {
-      messageElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      messageElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   };
 
@@ -75,15 +82,19 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       setEmojiIconPosition({
         top: rect.top,
         left: rect.left,
+        right: rect.right,
+        bottom: rect.bottom,
       });
     }
   };
   const updateMoreSettingsIconPosition = () => {
     if (moreSettingsIconRef.current) {
       const rect = moreSettingsIconRef.current.getBoundingClientRect();
-      setEmojiIconPosition({
+      setMoreSettingIconPosition({
         top: rect.top,
         left: rect.left,
+        right: rect.right,
+        bottom: rect.bottom,
       });
     }
   };
@@ -252,7 +263,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
             </p>
             <div
               onMouseEnter={() => handleMouseEnter(message.id)}
-              onMouseLeave={() => handleMouseLeave()}
+              // onMouseLeave={() => handleMouseLeave()}
               className={cn("flex items-end relative", {
                 "justify-end": isCurrentUser,
               })}
@@ -354,13 +365,54 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                   {(messageSettingsHovered === message.id ||
                     messageSettingsOpened === message.id) && (
                     <div
-                      className={cn("flex items-center gap-[2px]", {
-                        "left-[90px] flex-row justify-start":
+                      className={cn("flex relative items-center gap-[2px]", {
+                        "flex-row justify-start":
                           message.senderId !== session.user.id,
-                        "right-[90px] flex-row-reverse justify-end":
+                        "flex-row-reverse justify-end":
                           message.senderId === session.user.id,
                       })}
                     >
+                      {" "}
+                      {isEmojiPickerOpen === message.id && (
+                        <div
+                          ref={emojiPickerRef}
+                          className={cn(`absolute z-20`, {
+                            "transform bottom-0 translate-y-[100%]":
+                              emojiIconPosition.top < 420,
+                            "bottom-6": emojiIconPosition.top > 420,
+                            "right-0 transform ": isCurrentUser,
+                            "left-0 transform ": !isCurrentUser,
+                          })}
+                        >
+                          <EmojiPicker
+                            onEmojiClick={(emoji) => {
+                              console.log(emoji.emoji);
+                            }}
+                            searchDisabled={true}
+                            skinTonesDisabled={true}
+                            // lazyLoadEmojis={true}
+                            width={340}
+                            height={325}
+                            className="shadow-md bg-red-300"
+                          />
+                        </div>
+                      )}
+                      {moreSettingsOpen === message.id && (
+                        <div
+                          ref={moreSettingsRef}
+                          className={cn(`absolute z-20`, {
+                            "transform bottom-0 translate-y-[100%]":
+                              moreSettingIconPosition.top < 420,
+                            "bottom-7": moreSettingIconPosition.top > 420,
+                            "right-0 transform -translate-x-[30%]":
+                              isCurrentUser,
+                            "left-0 transform translate-x-[30%]":
+                              !isCurrentUser,
+                          })}
+                        >
+                          <MoreSettings message={message} />
+                        </div>
+                      )}
                       <Tooltip
                         delayDuration={0}
                         skipDelayDuration={0}
@@ -369,6 +421,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         content={"React"}
                         arrowColor="text-rich_gray-900"
                         className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
+                        hideWhenDetached
                       >
                         <div
                           ref={emojiPickerIconRef}
@@ -377,31 +430,9 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                             "p-1 relative cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}
                         >
-                          {isEmojiPickerOpen === message.id && (
-                            <div
-                              ref={emojiPickerRef}
-                              className={cn("absolute  z-20", {
-                                "transform bottom-0 translate-y-[100%]":
-                                  emojiIconPosition.top < 420,
-                                "bottom-7": emojiIconPosition.top > 420,
-                                "right-0": isCurrentUser,
-                                "left-0": !isCurrentUser,
-                              })}
-                            >
-                              <EmojiPicker
-                                searchDisabled={true}
-                                skinTonesDisabled={true}
-                                // lazyLoadEmojis={true}
-                                width={340}
-                                height={325}
-                                className="shadow-md bg-red-300"
-                              />
-                            </div>
-                          )}
                           <SmileIcon className="w-4 h-4" />
                         </div>
                       </Tooltip>
-
                       <Tooltip
                         delayDuration={0}
                         skipDelayDuration={0}
@@ -427,7 +458,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                           <Reply className="w-4 h-4" />
                         </div>
                       </Tooltip>
-
                       <Tooltip
                         delayDuration={0}
                         skipDelayDuration={0}
@@ -447,20 +477,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                             "p-1 cursor-pointer relative hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}
                         >
-                          {moreSettingsOpen === message.id && (
-                            <div
-                              ref={moreSettingsRef}
-                              className={cn("absolute  z-20", {
-                                "transform bottom-0 translate-y-[100%]":
-                                  emojiIconPosition.top < 420,
-                                "bottom-7": emojiIconPosition.top > 420,
-                                "right-0": isCurrentUser,
-                                "left-0": !isCurrentUser,
-                              })}
-                            >
-                              <MoreSettings message={message} />
-                            </div>
-                          )}
                           <MoreVerticalIcon className="w-4 h-4" />
                         </div>
                       </Tooltip>
