@@ -12,6 +12,7 @@ import { ReplyTo } from "./ClientChatGlobal";
 import Tooltip from "@/components/ui/Tooltip";
 import EmojiPicker from "emoji-picker-react";
 import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
+import MoreSettings from "@/components/MoreSettings";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
@@ -31,63 +32,109 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   setReplyTo,
 }) => {
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
+  const messageRefs = useRef({} as any);
+  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
+  const emojiPickerIconRef = useRef<HTMLDivElement | null>(null);
+  const moreSettingsRef = useRef<HTMLDivElement | null>(null);
+  const moreSettingsIconRef = useRef<HTMLDivElement | null>(null);
+
   const { isSettingsModalOpen, setIsSettingsModalOpen } =
     useSettingsModalContext();
-  const [messegeSettingsOpen, setMessegeSettingsOpen] = useState<
-    string[] | null
+  const [messageSettingsHovered, setMessageSettingsHovered] = useState<
+    string | null
   >(null);
+  const [messageSettingsOpened, setMessageSettingsOpened] = useState<
+    string | null
+  >(null);
+  const [moreSettingsOpen, setMoreSettingsOpen] = useState<string | null>(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<string | null>(
     null
   );
-  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
 
-  const handleMouseEnter = (messageId: string) => {
-    if (!isEmojiPickerOpen) {
-      // If emoji picker is not open, replace the message being hovered
-      setMessegeSettingsOpen([messageId]);
-    } else if (!messegeSettingsOpen?.includes(messageId)) {
-      // If emoji picker is open, keep the message ID that opened it and add the new hovered message temporarily
-      setMessegeSettingsOpen((prev) => {
-        const [pickerId] = prev || [];
-        return pickerId ? [pickerId, messageId] : [messageId];
+  const [emojiIconPosition, setEmojiIconPosition] = useState({
+    top: 0,
+    left: 0,
+  });
+  const [moreSettingIconPosition, setMoreSettingIconPosition] = useState({
+    top: 0,
+    left: 0,
+  });
+
+  const scrollToMessage = (messageId: string | undefined) => {
+    if (!messageId) return;
+    const messageElement = messageRefs.current[messageId];
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Function to get the emojiIconPosition of the element
+  const updateEmojiIconPosition = () => {
+    if (emojiPickerIconRef.current) {
+      const rect = emojiPickerIconRef.current.getBoundingClientRect();
+      setEmojiIconPosition({
+        top: rect.top,
+        left: rect.left,
+      });
+    }
+  };
+  const updateMoreSettingsIconPosition = () => {
+    if (moreSettingsIconRef.current) {
+      const rect = moreSettingsIconRef.current.getBoundingClientRect();
+      setEmojiIconPosition({
+        top: rect.top,
+        left: rect.left,
       });
     }
   };
 
-  // const handleMouseLeave = () => {
-  //   if (!isEmojiPickerOpen) {
-  //     // Only reset hover when emoji picker is not open
-  //     setMessegeSettingsOpen(null);
-  //   } else {
-  //     // When emoji picker is open, reset the hovered message but keep the picker open
-  //     setMessegeSettingsOpen((prev) => {
-  //       const [pickerId] = prev || [];
-  //       return pickerId ? [pickerId] : null;
-  //     });
-  //   }
-  // };
+  const handleMouseEnter = (messageId: string) => {
+    setMessageSettingsHovered(messageId);
+    // if (!isEmojiPickerOpen && !moreSettingsOpen) {
+    // }
+  };
+
   const handleMouseLeave = () => {
-    if (!isEmojiPickerOpen) {
-      setMessegeSettingsOpen(null); // Reset when leaving if emoji picker is not open
+    setMessageSettingsHovered(null); // Reset hovered state
+    if (!isEmojiPickerOpen && !moreSettingsOpen) {
     }
-    // When emoji picker is open, do not reset the settings
   };
 
   const handleEmojiPickerClick = (messageId: string) => {
-    setIsEmojiPickerOpen((prev) => {
-      if (prev === messageId) {
-        // Close emoji picker if clicked again
-        setMessegeSettingsOpen([messageId]);
-        return null;
-      } else {
-        // Open new emoji picker, close previous settings
-        setMessegeSettingsOpen([messageId]);
-        return messageId;
-      }
-    });
+    setMoreSettingsOpen(null);
+
+    if (isEmojiPickerOpen === messageId) {
+      setIsEmojiPickerOpen(null);
+      setMessageSettingsOpened(null);
+    } else {
+      setIsEmojiPickerOpen(messageId);
+      setMessageSettingsOpened(messageId); // Set opened message settings
+      // setMessageSettingsHovered(null); // Clear hovered state
+    }
+  };
+
+  const handleMoreSettingsClick = (messageId: string) => {
+    setIsEmojiPickerOpen(null);
+
+    if (moreSettingsOpen === messageId) {
+      setMoreSettingsOpen(null);
+      setMessageSettingsOpened(null);
+    } else {
+      setMoreSettingsOpen(messageId);
+      setMessageSettingsOpened(messageId); // Set opened message settings
+      // setMessageSettingsHovered(null); // Clear hovered state
+    }
   };
 
   useEffect(() => {
+    updateEmojiIconPosition();
+    updateMoreSettingsIconPosition();
+
+    window.addEventListener("scroll", () => {
+      updateEmojiIconPosition();
+      updateMoreSettingsIconPosition();
+    });
+
     pusherClient.subscribe(toPusherKey(`global-chat`));
 
     const newMessageHandler = (message: Message) => {
@@ -109,22 +156,39 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
         return [message, ...prev]; // Add the message normally if it's not a replacement
       });
     };
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         emojiPickerRef.current &&
         !emojiPickerRef.current.contains(event.target as Node)
       ) {
         setIsEmojiPickerOpen(null); // Close emoji picker
-
-        // Check if any message settings are open
-        if (messegeSettingsOpen && messegeSettingsOpen.length > 0) {
-          // If you clicked outside while settings are open, keep the last one open
-          const lastOpenMessageId =
-            messegeSettingsOpen[messegeSettingsOpen.length - 1];
-          setMessegeSettingsOpen([lastOpenMessageId]); // Keep the last message's settings open
+        // setMessageSettingsHovered(null);
+        setMessageSettingsOpened(null);
+        // If emoji picker is open, do not reset message settings
+        if (messageSettingsOpened) {
+          return; // Keep the message settings open
         } else {
-          // Otherwise, reset settings open state
-          setMessegeSettingsOpen(null);
+          // Reset message settings if no emoji picker is open
+          setMessageSettingsHovered(null);
+          setMessageSettingsOpened(null);
+        }
+      }
+
+      if (
+        moreSettingsRef.current &&
+        !moreSettingsRef.current.contains(event.target as Node)
+      ) {
+        setMoreSettingsOpen(null); // Close more settings
+        setMessageSettingsOpened(null);
+
+        // If more settings are open, do not reset message settings
+        if (messageSettingsOpened) {
+          return; // Keep the message settings open
+        } else {
+          // Reset message settings if no more settings are open
+          setMessageSettingsHovered(null);
+          setMessageSettingsOpened(null);
         }
       }
     };
@@ -137,13 +201,19 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       pusherClient.unsubscribe(toPusherKey(`global-chat`));
       pusherClient.unbind("messages", newMessageHandler);
       document.removeEventListener("click", handleClickOutside);
+      window.removeEventListener("scroll", () => {
+        updateEmojiIconPosition();
+        updateMoreSettingsIconPosition();
+      });
     };
   }, [
+    messageSettingsHovered,
+    messageSettingsOpened,
     isEmojiPickerOpen,
+    moreSettingsOpen,
     setIsEmojiPickerOpen,
     setMessages,
-    setMessegeSettingsOpen,
-    messegeSettingsOpen,
+    setMoreSettingsOpen,
   ]);
 
   return (
@@ -230,8 +300,11 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                       )}
                     >
                       <span
+                        onClick={() => {
+                          scrollToMessage(message.replyToMessegeId);
+                        }}
                         className={cn(
-                          "px-4 py-2 rounded-[24px] inline-block max-w-full break-words bg-gray-200 text-gray-900" // Add break-words
+                          "px-4 py-2 cursor-pointer rounded-[24px] inline-block max-w-full break-words bg-gray-200 text-gray-900" // Add break-words
                         )}
                       >
                         {
@@ -251,6 +324,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                   })}
                 >
                   <span
+                    ref={(el) => (messageRefs.current[message.id] = el)} // Store the ref
                     className={cn(
                       "px-4 py-2 rounded-[24px] inline-block max-w-full break-words", // Add break-words
                       {
@@ -277,7 +351,8 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                   >
                     {message.text}
                   </span>
-                  {messegeSettingsOpen?.find((id) => id === message.id) && (
+                  {(messageSettingsHovered === message.id ||
+                    messageSettingsOpened === message.id) && (
                     <div
                       className={cn("flex items-center gap-[2px]", {
                         "left-[90px] flex-row justify-start":
@@ -296,6 +371,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
+                          ref={emojiPickerIconRef}
                           onClick={() => handleEmojiPickerClick(message.id)}
                           className={cn(
                             "p-1 relative cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
@@ -304,7 +380,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                           {isEmojiPickerOpen === message.id && (
                             <div
                               ref={emojiPickerRef}
-                              className={cn("absolute bottom-7 z-20", {
+                              className={cn("absolute  z-20", {
+                                "transform bottom-0 translate-y-[100%]":
+                                  emojiIconPosition.top < 420,
+                                "bottom-7": emojiIconPosition.top > 420,
                                 "right-0": isCurrentUser,
                                 "left-0": !isCurrentUser,
                               })}
@@ -359,13 +438,29 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         className="bg-rich_gray-900 relative z-30 rounded-md shadow-lg p-2 text-white text-xs min-w-7"
                       >
                         <div
+                          ref={moreSettingsIconRef}
                           onClick={() => {
-                            setIsSettingsModalOpen(message.id);
+                            // setIsSettingsModalOpen(message.id);
+                            handleMoreSettingsClick(message.id);
                           }}
                           className={cn(
-                            "p-1 cursor-pointer hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
+                            "p-1 cursor-pointer relative hover:bg-gray-100 rounded-full text-rich_gray-900    hover:text-indigo-600"
                           )}
                         >
+                          {moreSettingsOpen === message.id && (
+                            <div
+                              ref={moreSettingsRef}
+                              className={cn("absolute  z-20", {
+                                "transform bottom-0 translate-y-[100%]":
+                                  emojiIconPosition.top < 420,
+                                "bottom-7": emojiIconPosition.top > 420,
+                                "right-0": isCurrentUser,
+                                "left-0": !isCurrentUser,
+                              })}
+                            >
+                              <MoreSettings message={message} />
+                            </div>
+                          )}
                           <MoreVerticalIcon className="w-4 h-4" />
                         </div>
                       </Tooltip>
