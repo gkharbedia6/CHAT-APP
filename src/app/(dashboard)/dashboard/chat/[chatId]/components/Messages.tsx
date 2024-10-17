@@ -8,6 +8,7 @@ import { Session } from "next-auth";
 import { Message } from "@/lib/validations/message";
 import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
+import { User } from "@/types/db";
 
 interface MessagesProps {
   messages: Message[];

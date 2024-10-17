@@ -9,6 +9,7 @@ import Button from "@/ui/Button";
 import { Session } from "next-auth";
 import { cn } from "@/lib/utils";
 import { ReplyTo } from "@/app/(dashboard)/dashboard/chat/components/ClientChatGlobal";
+import { User } from "@/types/db";
 
 interface ChatInputProps {
   session: Session;
@@ -37,13 +38,14 @@ const ChatInput: FC<ChatInputProps> = ({
   const onSendMessage = async () => {
     if (!input) return;
 
-    const tempId = `temp-${Date.now()}`; // Temporary ID to track optimistic message
+    const timestamp = Date.now();
+    const tempId = `temp-${timestamp}`; // Temporary ID to track optimistic message
 
     const tempMessage: Message = {
       id: tempId, // Temporary ID
       text: input,
       senderId: session.user.id,
-      timestamp: Date.now(),
+      timestamp: timestamp,
       replyToUserId: "",
       replyToMessegeId: "",
     };

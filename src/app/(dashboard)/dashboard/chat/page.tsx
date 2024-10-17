@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { fetchRedis } from "@/helpers/redis";
 import { messageArrayValidator } from "@/lib/validations/message";
 import ClientChatGlobal from "./components/ClientChatGlobal";
+import { User, Message } from "@/types/db";
 
 interface PageProps {}
 
@@ -40,6 +41,8 @@ const page = async ({}: PageProps) => {
   if (!user.id) notFound();
 
   const initialMessages = await getChatMessages();
+
+  const initilalReactions = await db.json.get("reactions", "$");
 
   const globalChatUserIds = [
     ...new Set(initialMessages.map((message) => message.senderId)),

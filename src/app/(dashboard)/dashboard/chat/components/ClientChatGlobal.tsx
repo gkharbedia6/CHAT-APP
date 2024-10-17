@@ -4,10 +4,12 @@ import ChatInput from "@/components/ChatInput";
 import { Session } from "next-auth";
 import { Message } from "@/lib/validations/message";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import MessagesGlobal from "./MessagesGlobal";
+import { EmojiClickData } from "emoji-picker-react";
+import { User } from "@/types/db";
 
 export interface ReplyTo {
   text: string;
@@ -48,6 +50,7 @@ const ClientChatGlobal = ({
     try {
       await axios.post("/api/message/send-global", {
         text: input,
+        timestamp: tempMessage.timestamp,
         replyToUserId: replyTo?.replyToUserId ?? "",
         replyToMessegeId: replyTo?.replyToMessegeId ?? "",
       });
@@ -63,6 +66,23 @@ const ClientChatGlobal = ({
     }
   };
 
+  const reactToMessage = async (
+    emoji: EmojiClickData,
+    messageId: string,
+    timestamp: number
+  ) => {
+    try {
+      await axios.post("/api/reaction/add", {
+        emoji: emoji,
+        messageId: messageId,
+        timestamp: timestamp,
+      });
+    } catch (error) {
+      console.log("err", error);
+    } finally {
+    }
+  };
+
   return (
     <>
       <MessagesGlobal
@@ -72,6 +92,7 @@ const ClientChatGlobal = ({
         setMessages={setMessages}
         setIsReplying={setIsReplying}
         setReplyTo={setReplyTo}
+        reactToMessage={reactToMessage}
       />
       <ChatInput
         isReplying={isReplying}

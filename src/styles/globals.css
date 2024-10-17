@@ -14,9 +14,22 @@
   position: static !important;
 }
 
+.epr_-6npj90 {
+  --epr-picker-border-color: white !important;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1), 0px 6px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.epr_-msa4qv {
+  border: none !important;
+}
+
 .epr-emoji-category-label {
   font-size: 14px !important;
   color: #4b5563;
+}
+
+.shadow_box {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1), 0px 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* ::-webkit-scrollbar {

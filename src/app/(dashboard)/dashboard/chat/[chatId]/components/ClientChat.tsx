@@ -8,6 +8,7 @@ import { Message } from "@/lib/validations/message";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { User } from "@/types/db";
 
 interface ClientChatProps {
   initialMessages: Message[];

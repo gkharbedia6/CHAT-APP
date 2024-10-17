@@ -12,40 +12,26 @@ export async function POST(req: Request) {
   try {
     const {
       text,
+      timestamp,
       replyToUserId,
       replyToMessegeId,
-    }: { text: string; replyToUserId: string; replyToMessegeId: string } =
-      await req.json();
+    }: {
+      text: string;
+      timestamp: number;
+      replyToUserId: string;
+      replyToMessegeId: string;
+    } = await req.json();
 
     const session = await getServerSession(authOptions);
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    // if (session.user.id !== userIdOne && session.user.id !== userIdTwo) {
-    //   return new Response("Unauthorized", { status: 401 });
-    // }
-
-    // const friendId = session.user.id === userIdOne ? userIdTwo : userIdOne;
-
-    // const friendListData = (await fetchRedis(
-    //   "smembers",
-    //   `user:${session.user.id}:friends`
-    // )) as string[];
-
-    // const isFriend = friendListData.includes(friendId);
-
-    // if (!isFriend) {
-    //   return new Response("Unauthorized", { status: 401 });
-    // }
-
     const senderData = (await fetchRedis(
       "get",
       `user:${session.user.id}`
     )) as string;
     const sender = JSON.parse(senderData);
-
-    const timestamp = Date.now();
 
     const messageData: Message = {
       id: nanoid(),

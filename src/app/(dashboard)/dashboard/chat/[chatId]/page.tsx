@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { fetchRedis } from "@/helpers/redis";
 import { messageArrayValidator } from "@/lib/validations/message";
 import ClientChat from "./components/ClientChat";
+import { Message, User } from "@/types/db";
 
 interface PageProps {
   params: {

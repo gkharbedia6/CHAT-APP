@@ -1,3 +1,5 @@
+import { EmojiClickData } from "emoji-picker-react";
+
 interface User {
   name: string;
   email: string;
@@ -16,6 +18,14 @@ interface Message {
   receiverId: string;
   text: string;
   timestamp: number;
+  replyToUserId?: string;
+  replyToMessegeId?: string;
+  reactions?: Reaction[];
+}
+
+interface Reaction {
+  emoji: EmojiClickData;
+  senderId: string;
 }
 
 interface FriendRequest {

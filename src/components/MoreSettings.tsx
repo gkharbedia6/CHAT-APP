@@ -24,7 +24,7 @@ const MoreSettings = ({ message }: MoreSettingsProps) => {
   };
 
   return (
-    <div className="w-[180px] h-[170px] bg-white shadow-md flex flex-col rounded-lg items-evenly">
+    <div className="w-[180px] h-[150px] bg-white shadow_box flex flex-col rounded-lg items-evenly">
       <div className="h-[30%] align-middle px-4 flex justify-start items-center text-xs text-gray-400 border-b-[1px] border-black">
         {formatTimestamp(message.timestamp)}
       </div>

@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Session } from "next-auth";
+import { Session, User } from "next-auth";
 import { Reply, SmileIcon, MoreVerticalIcon } from "lucide-react";
 
 import { Message } from "@/lib/validations/message";
@@ -10,7 +10,7 @@ import { cn, toPusherKey } from "@/lib/utils";
 import { pusherClient } from "@/lib/pusher";
 import { ReplyTo } from "./ClientChatGlobal";
 import Tooltip from "@/components/ui/Tooltip";
-import EmojiPicker from "emoji-picker-react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
 import MoreSettings from "@/components/MoreSettings";
 
@@ -21,6 +21,11 @@ interface MessagesGlobalProps {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setIsReplying: React.Dispatch<React.SetStateAction<boolean>>;
   setReplyTo: React.Dispatch<React.SetStateAction<ReplyTo | null>>;
+  reactToMessage: (
+    emoji: EmojiClickData,
+    messageId: string,
+    timestamp: number
+  ) => void;
 }
 
 const MessagesGlobal: FC<MessagesGlobalProps> = ({
@@ -30,6 +35,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   setMessages,
   setIsReplying,
   setReplyTo,
+  reactToMessage,
 }) => {
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
   const messageRefs = useRef({} as any);
@@ -74,12 +80,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       });
     }
   };
-  const handleScrollEvents = () => {
-    if (!isEmojiPickerOpen && !moreSettingsOpen) {
-      updateEmojiIconPosition();
-      updateMoreSettingsIconPosition();
-    }
-  };
+
   // Function to get the emojiIconPosition of the element
   const updateEmojiIconPosition = () => {
     if (emojiPickerIconRef.current) {
@@ -101,29 +102,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
         right: rect.right,
         bottom: rect.bottom,
       });
-    }
-  };
-
-  const checkComponentVisibility = () => {
-    if (isEmojiPickerOpen || moreSettingsOpen) {
-      const emojiPickerElement = emojiPickerRef.current;
-      const moreSettingsElement = moreSettingsRef.current;
-
-      if (emojiPickerElement) {
-        const rect = emojiPickerElement.getBoundingClientRect();
-        if (rect.top < 0 || rect.bottom > window.innerHeight) {
-          setIsEmojiPickerOpen(null);
-          setMessageSettingsOpened(null);
-        }
-      }
-
-      if (moreSettingsElement) {
-        const rect = moreSettingsElement.getBoundingClientRect();
-        if (rect.top < 0 || rect.bottom > window.innerHeight) {
-          setMoreSettingsOpen(null);
-          setMessageSettingsOpened(null);
-        }
-      }
     }
   };
 
@@ -166,8 +144,6 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   };
 
   useEffect(() => {
-    handleScrollEvents();
-    checkComponentVisibility();
     //pusher
     pusherClient.subscribe(toPusherKey(`global-chat`));
 
@@ -235,6 +211,39 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
       updateEmojiIconPosition();
       updateMoreSettingsIconPosition();
     });
+
+    const handleScrollEvents = () => {
+      if (!isEmojiPickerOpen && !moreSettingsOpen) {
+        updateEmojiIconPosition();
+        updateMoreSettingsIconPosition();
+      }
+    };
+
+    const checkComponentVisibility = () => {
+      if (isEmojiPickerOpen || moreSettingsOpen) {
+        const emojiPickerElement = emojiPickerRef.current;
+        const moreSettingsElement = moreSettingsRef.current;
+
+        if (emojiPickerElement) {
+          const rect = emojiPickerElement.getBoundingClientRect();
+          if (rect.top < 0 || rect.bottom > window.innerHeight) {
+            setIsEmojiPickerOpen(null);
+            setMessageSettingsOpened(null);
+          }
+        }
+
+        if (moreSettingsElement) {
+          const rect = moreSettingsElement.getBoundingClientRect();
+          if (rect.top < 0 || rect.bottom > window.innerHeight) {
+            setMoreSettingsOpen(null);
+            setMessageSettingsOpened(null);
+          }
+        }
+      }
+    };
+
+    handleScrollEvents();
+    checkComponentVisibility();
 
     pusherClient.bind("messages", newMessageHandler);
 
@@ -416,7 +425,14 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         >
                           <EmojiPicker
                             onEmojiClick={(emoji) => {
-                              console.log(emoji.emoji);
+                              reactToMessage(
+                                emoji,
+                                message.id,
+                                message.timestamp
+                              );
+                              setIsEmojiPickerOpen(null);
+                              setMessageSettingsOpened(null);
+                              setMessageSettingsHovered(null);
                             }}
                             searchDisabled={true}
                             skinTonesDisabled={true}

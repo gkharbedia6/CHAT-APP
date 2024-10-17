@@ -27,7 +27,7 @@ const SettingsModal = ({}: SettingsModalProps) => {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isSettingsModalOpen]);
+  }, [isSettingsModalOpen, setIsSettingsModalOpen]);
 
   return (
     <>
