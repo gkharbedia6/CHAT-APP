@@ -42,8 +42,6 @@ const page = async ({}: PageProps) => {
 
   const initialMessages = await getChatMessages();
 
-  const initilalReactions = await db.json.get("reactions", "$");
-
   const globalChatUserIds = [
     ...new Set(initialMessages.map((message) => message.senderId)),
   ];
