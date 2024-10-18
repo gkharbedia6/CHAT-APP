@@ -26,9 +26,11 @@ interface Message {
 interface Reaction {
   messageId: string;
   emoji?: EmojiClickData;
-  senderId: string;
   timestamp: number;
   messageText: string;
+  senderId: string;
+  senderName: string;
+  senderImageUrl: string;
 }
 
 interface FriendRequest {

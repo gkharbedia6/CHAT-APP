@@ -4,6 +4,8 @@ export const reactionValidator = z.object({
   messageId: z.string(),
   emoji: z.any(),
   senderId: z.string(),
+  senderName: z.string(),
+  senderImageUrl: z.string(),
   timestamp: z.number(),
   messageText: z.string(),
 });

@@ -6,6 +6,7 @@ import DiscordProvider from "next-auth/providers/discord";
 
 import { db } from "@/lib//db";
 import { fetchRedis } from "@/helpers/redis";
+import { User } from "@/types/db";
 
 function getGoogleCredentials() {
   const clientId = process.env.GOOGLE_CLIENT_ID;

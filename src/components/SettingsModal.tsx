@@ -42,7 +42,9 @@ const SettingsModal = () => {
           <div
             ref={modalRef}
             className="w-[400px] relative z-50 h-[250px] bg-white shadow-md flex flex-col items-center justify-start"
-          ></div>
+          >
+            {isSettingsModalOpen}
+          </div>
         </div>
       )}
     </>

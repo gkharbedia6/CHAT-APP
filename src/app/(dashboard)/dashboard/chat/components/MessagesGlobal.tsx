@@ -24,7 +24,12 @@ interface MessagesGlobalProps {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setIsReplying: React.Dispatch<React.SetStateAction<boolean>>;
   setReplyTo: React.Dispatch<React.SetStateAction<ReplyTo | null>>;
-  reactToMessage: (emoji: EmojiClickData, message: Message) => void;
+  reactToMessage: (
+    emoji: EmojiClickData,
+    message: Message,
+    userName: string | undefined | null,
+    userImageUrl: string | undefined | null
+  ) => void;
 }
 
 const MessagesGlobal: FC<MessagesGlobalProps> = ({
@@ -60,7 +65,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   );
 
   const getReactionsToMessage = (messageId: string) => {
-    return initialReactions.filter(
+    return initialReactions?.filter(
       (reaction) => reaction.messageId === messageId
     ) as Reaction[];
   };
@@ -416,10 +421,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                     >
                       {message.text}
                     </span>
-                    {getReactionsToMessage(message.id).length > 0 ? (
+                    {getReactionsToMessage(message.id)?.length > 0 ? (
                       <div
                         onClick={() => {
-                          if (getReactionsToMessage(message.id).length) {
+                          if (getReactionsToMessage(message.id)?.length) {
                             setIsReactionModalOpen(
                               getReactionsToMessage(message.id)
                             );
@@ -433,9 +438,12 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                               <div
                                 key={`${reaction.senderId}-${reaction.messageId}`}
                               >
-                                <img
+                                <Image
                                   className="w-3"
                                   src={reaction.emoji.imageUrl}
+                                  alt={"Emoji"}
+                                  width={12}
+                                  height={12}
                                 />
                               </div>
                             );
@@ -472,7 +480,15 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         >
                           <EmojiPicker
                             onEmojiClick={(emoji) => {
-                              reactToMessage(emoji, message);
+                              if (session && session.user) {
+                                reactToMessage(
+                                  emoji,
+                                  message,
+                                  session.user.name,
+                                  session.user.image
+                                );
+                              }
+
                               setIsEmojiPickerOpen(null);
                               setMessageSettingsOpened(null);
                               setMessageSettingsHovered(null);

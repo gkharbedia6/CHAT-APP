@@ -15,11 +15,15 @@ export async function POST(req: Request) {
       messageId,
       timestamp,
       messageText,
+      senderName,
+      senderImageUrl,
     }: {
       emoji: EmojiClickData;
       messageId: string;
       timestamp: number;
       messageText: string;
+      senderName: string;
+      senderImageUrl: string;
     } = await req.json();
 
     const session = await getServerSession(authOptions);
@@ -40,6 +44,8 @@ export async function POST(req: Request) {
       senderId: sender.id,
       timestamp: timestamp,
       messageText: messageText,
+      senderName: senderName,
+      senderImageUrl: senderImageUrl,
     };
     const reactionsValid = reactionValidator.parse(reactionData);
 

@@ -69,13 +69,20 @@ const ClientChatGlobal = ({
     }
   };
 
-  const reactToMessage = async (emoji: EmojiClickData, message: Message) => {
+  const reactToMessage = async (
+    emoji: EmojiClickData,
+    message: Message,
+    userName: string | undefined | null,
+    userImageUrl: string | undefined | null
+  ) => {
     try {
       await axios.post("/api/reaction/add", {
         emoji: emoji,
         messageId: message.id,
         timestamp: message.timestamp,
         messageText: message.text,
+        senderName: userName,
+        senderImageUrl: userImageUrl,
       });
     } catch (error) {
       console.log("err", error);

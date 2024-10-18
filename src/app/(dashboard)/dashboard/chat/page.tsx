@@ -37,12 +37,15 @@ async function getMessagesReactions() {
   try {
     const results: string = await fetchRedis("json.get", "reactions", "$");
 
+    if (!results) return;
+
     const dbReactions = JSON.parse(results)[0];
 
     const reactions = reactionsArrayValidator.parse(dbReactions);
 
     return reactions;
   } catch (error) {
+    console.log(error);
     notFound();
   }
 }
