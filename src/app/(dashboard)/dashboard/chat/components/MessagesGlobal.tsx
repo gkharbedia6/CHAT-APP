@@ -515,7 +515,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                               !isCurrentUser,
                           })}
                         >
-                          <MoreSettings message={message} />
+                          <MoreSettings
+                            setMoreSettingsOpen={setMoreSettingsOpen}
+                            message={message}
+                          />
                         </div>
                       )}
                       <Tooltip

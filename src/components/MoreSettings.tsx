@@ -6,9 +6,10 @@ import { Copy, Undo } from "lucide-react";
 
 interface MoreSettingsProps {
   message: Message;
+  setMoreSettingsOpen: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const MoreSettings = ({ message }: MoreSettingsProps) => {
+const MoreSettings = ({ message, setMoreSettingsOpen }: MoreSettingsProps) => {
   const { isSettingsModalOpen, setIsSettingsModalOpen } =
     useSettingsModalContext();
 
@@ -30,22 +31,23 @@ const MoreSettings = ({ message }: MoreSettingsProps) => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(message.text)
-      .then(() => {
-        alert("Text copied to clipboard!");
-      })
+      .then(() => {})
       .catch((err) => {
         console.error("Failed to copy: ", err);
       });
   };
 
   return (
-    <div className="w-[180px] h-[150px] bg-white shadow_box flex flex-col rounded-lg items-evenly">
+    <div className="w-[150px] h-[140px] bg-white shadow_box flex flex-col rounded-lg items-evenly">
       <div className="h-[30%] align-middle px-4 flex justify-start items-center text-xs text-gray-400 border-b-[1px] border-black">
         {formatTimestamp(message.timestamp)}
       </div>
       <div className="h-[35%] group  flex w-full justify-center items-center px-3 border-b-[1px] border-black  text-sm">
         <div
-          onClick={handleCopy}
+          onClick={() => {
+            handleCopy();
+            setMoreSettingsOpen(null);
+          }}
           className="flex w-full rounded-md hover:bg-gray-100 hover:text-indigo-600  px-2 py-2 cursor-pointer flex-row  justify-between items-center"
         >
           <div>Copy</div>
@@ -57,6 +59,7 @@ const MoreSettings = ({ message }: MoreSettingsProps) => {
         <div
           onClick={() => {
             setIsSettingsModalOpen(message.id);
+            setMoreSettingsOpen(null);
           }}
           className="flex w-full rounded-md hover:bg-gray-100 px-2 py-2 cursor-pointer flex-row  justify-between items-center"
         >

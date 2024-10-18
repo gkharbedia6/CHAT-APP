@@ -70,6 +70,7 @@ const ReactionModal = ({ session }: ReactionModalProps) => {
                     onClick={() => {
                       if (reaction.senderId === session.user.id) {
                         console.log("remove");
+                        setIsReactionModalOpen(null);
                       }
                     }}
                     className="hover:bg-gray-100 p-2 px-5 cursor-pointer text-rich_gray-900 hover:text-indigo-600 rounded-sm flex flex-row justify-between items-center"
