@@ -13,25 +13,24 @@ import Tooltip from "@/components/ui/Tooltip";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
 import MoreSettings from "@/components/MoreSettings";
+import { Reaction } from "@/lib/validations/reaction";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
   messages: Message[];
   session: Session;
+  initialReactions: Reaction[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setIsReplying: React.Dispatch<React.SetStateAction<boolean>>;
   setReplyTo: React.Dispatch<React.SetStateAction<ReplyTo | null>>;
-  reactToMessage: (
-    emoji: EmojiClickData,
-    messageId: string,
-    timestamp: number
-  ) => void;
+  reactToMessage: (emoji: EmojiClickData, message: Message) => void;
 }
 
 const MessagesGlobal: FC<MessagesGlobalProps> = ({
   globalChatUsers,
   messages,
   session,
+  initialReactions,
   setMessages,
   setIsReplying,
   setReplyTo,
@@ -43,6 +42,8 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const emojiPickerIconRef = useRef<HTMLDivElement | null>(null);
   const moreSettingsRef = useRef<HTMLDivElement | null>(null);
   const moreSettingsIconRef = useRef<HTMLDivElement | null>(null);
+
+  console.log(initialReactions);
 
   const { isSettingsModalOpen, setIsSettingsModalOpen } =
     useSettingsModalContext();
@@ -374,34 +375,70 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                     "order-2 items-center gap-1 flex-row": !isCurrentUser,
                   })}
                 >
-                  <span
-                    ref={(el) => (messageRefs.current[message.id] = el)} // Store the ref
-                    className={cn(
-                      "px-4 py-2 rounded-[24px] inline-block max-w-full break-words", // Add break-words
-                      {
-                        "bg-indigo-600 text-white": isCurrentUser,
-                        "bg-gray-200 text-gray-900": !isCurrentUser,
-                        "rounded-tl-none rounded-bl-none":
-                          hasNextMessageFromSameUser &&
-                          hasPreviousMessageFromSameUser &&
-                          !isCurrentUser,
-                        "rounded-tl-none":
-                          !hasNextMessageFromSameUser && !isCurrentUser,
-                        "rounded-bl-none":
-                          !hasPreviousMessageFromSameUser && !isCurrentUser,
-                        "rounded-tr-none rounded-br-none":
-                          hasNextMessageFromSameUser &&
-                          hasPreviousMessageFromSameUser &&
-                          isCurrentUser,
-                        "rounded-tr-none":
-                          !hasNextMessageFromSameUser && isCurrentUser,
-                        "rounded-br-none":
-                          !hasPreviousMessageFromSameUser && isCurrentUser,
-                      }
-                    )}
+                  <div
+                    className={cn("flex flex-col", {
+                      "items-end": isCurrentUser,
+                      "items-start": !isCurrentUser,
+                    })}
                   >
-                    {message.text}
-                  </span>
+                    <span
+                      ref={(el) => (messageRefs.current[message.id] = el)} // Store the ref
+                      className={cn(
+                        "px-4 py-2 rounded-[24px] inline-block max-w-full break-words", // Add break-words
+                        {
+                          "bg-indigo-600 text-white": isCurrentUser,
+                          "bg-gray-200 text-gray-900": !isCurrentUser,
+                          "rounded-tl-none rounded-bl-none":
+                            hasNextMessageFromSameUser &&
+                            hasPreviousMessageFromSameUser &&
+                            !isCurrentUser,
+                          "rounded-tl-none":
+                            !hasNextMessageFromSameUser && !isCurrentUser,
+                          "rounded-bl-none":
+                            !hasPreviousMessageFromSameUser && !isCurrentUser,
+                          "rounded-tr-none rounded-br-none":
+                            hasNextMessageFromSameUser &&
+                            hasPreviousMessageFromSameUser &&
+                            isCurrentUser,
+                          "rounded-tr-none":
+                            !hasNextMessageFromSameUser && isCurrentUser,
+                          "rounded-br-none":
+                            !hasPreviousMessageFromSameUser && isCurrentUser,
+                        }
+                      )}
+                    >
+                      {message.text}
+                    </span>
+                    {initialReactions.filter(
+                      (reaction) => reaction.messageId === message.id
+                    ).length > 0 ? (
+                      <div className=" flex gap-[4px] -mt-2 flex-row  cursor-pointer items-center justify-center bg-gray-200 border-[2px] border-white rounded-full px-2">
+                        {initialReactions.map((reaction) => {
+                          if (reaction.messageId === message.id) {
+                            return (
+                              <div
+                                key={`${reaction.senderId}-${reaction.messageId}`}
+                              >
+                                <img
+                                  className="w-3"
+                                  src={reaction.emoji.imageUrl}
+                                />
+                              </div>
+                            );
+                          }
+                        })}
+
+                        <span className="text-sm">
+                          {
+                            initialReactions.filter(
+                              (reaction) => reaction.messageId === message.id
+                            ).length
+                          }
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+
                   {(messageSettingsHovered === message.id ||
                     messageSettingsOpened === message.id) && (
                     <div
@@ -425,11 +462,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         >
                           <EmojiPicker
                             onEmojiClick={(emoji) => {
-                              reactToMessage(
-                                emoji,
-                                message.id,
-                                message.timestamp
-                              );
+                              reactToMessage(emoji, message);
                               setIsEmojiPickerOpen(null);
                               setMessageSettingsOpened(null);
                               setMessageSettingsHovered(null);

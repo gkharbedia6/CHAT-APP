@@ -8,6 +8,7 @@ import { fetchRedis } from "@/helpers/redis";
 import { messageArrayValidator } from "@/lib/validations/message";
 import ClientChatGlobal from "./components/ClientChatGlobal";
 import { User, Message } from "@/types/db";
+import { reactionsArrayValidator } from "@/lib/validations/reaction";
 
 interface PageProps {}
 
@@ -32,6 +33,20 @@ async function getChatMessages() {
   }
 }
 
+async function getMessagesReactions() {
+  try {
+    const results: string = await fetchRedis("json.get", "reactions", "$");
+
+    const dbReactions = JSON.parse(results)[0];
+
+    const reactions = reactionsArrayValidator.parse(dbReactions);
+
+    return reactions;
+  } catch (error) {
+    notFound();
+  }
+}
+
 const page = async ({}: PageProps) => {
   const session = await getServerSession(authOptions);
   if (!session) notFound();
@@ -41,6 +56,8 @@ const page = async ({}: PageProps) => {
   if (!user.id) notFound();
 
   const initialMessages = await getChatMessages();
+
+  const initialReactions = await getMessagesReactions();
 
   const globalChatUserIds = [
     ...new Set(initialMessages.map((message) => message.senderId)),
@@ -82,6 +99,7 @@ const page = async ({}: PageProps) => {
       </div>
 
       <ClientChatGlobal
+        initialReactions={initialReactions}
         globalChatUsers={globalChatUsers}
         initialMessages={initialMessages}
         session={session}

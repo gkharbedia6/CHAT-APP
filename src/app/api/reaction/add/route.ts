@@ -14,8 +14,13 @@ export async function POST(req: Request) {
       emoji,
       messageId,
       timestamp,
-    }: { emoji: EmojiClickData; messageId: string; timestamp: number } =
-      await req.json();
+      messageText,
+    }: {
+      emoji: EmojiClickData;
+      messageId: string;
+      timestamp: number;
+      messageText: string;
+    } = await req.json();
 
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -29,38 +34,56 @@ export async function POST(req: Request) {
     const sender = JSON.parse(senderData);
 
     const initilalReactions = await db.json.get("reactions", "$");
-    const reactionData = {
+    const reactionData: Reaction = {
       messageId: messageId,
       emoji: emoji,
       senderId: sender.id,
       timestamp: timestamp,
+      messageText: messageText,
     };
+    const reactionsValid = reactionValidator.parse(reactionData);
 
     if (
       Array.isArray(initilalReactions) &&
       Array.isArray(initilalReactions[0])
     ) {
-      const nextPosition = initilalReactions[0].length;
+      const reactions = initilalReactions[0] as Reaction[];
 
-      // const reactions = reactionValidator.parse(reactionData);
+      const alreadyReactedToMessage = reactions.find((reaction) => {
+        return (
+          reaction.messageId === messageId && reaction.senderId === sender.id
+        );
+      });
+
+      let nextPosition;
+      if (alreadyReactedToMessage) {
+        const index = reactions.indexOf(alreadyReactedToMessage);
+        pusherServer.trigger(
+          toPusherKey(`messageId:${messageId}`),
+          "reactions",
+          reactionData
+        ),
+          await db.json.del("reactions", `$.[${index}]`);
+        nextPosition = index;
+      } else {
+        nextPosition = reactions.length;
+      }
 
       pusherServer.trigger(
         toPusherKey(`messageId:${messageId}`),
         "reactions",
         reactionData
       ),
-        await db.json.arrinsert("reactions", "$", nextPosition, reactionData);
-      return new Response("Message sent", { status: 200 });
-    } else {
-      pusherServer.trigger(
-        toPusherKey(`messageId:${messageId}`),
-        "reactions",
-        reactionData
-      ),
-        await db.json.set("reactions", "$", [reactionData]);
-      console.log("No valid array found in the response.");
-      return;
+        await db.json.arrinsert("reactions", "$", nextPosition, reactionsValid);
+      return new Response("Reaction sent", { status: 200 });
     }
+    pusherServer.trigger(
+      toPusherKey(`messageId:${messageId}`),
+      "reactions",
+      reactionsValid
+    ),
+      await db.json.set("reactions", "$", [reactionsValid]);
+    return new Response("Reaction sent", { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return new Response(error.message, { status: 500 });

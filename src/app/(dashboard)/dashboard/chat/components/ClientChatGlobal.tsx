@@ -10,6 +10,7 @@ import axios from "axios";
 import MessagesGlobal from "./MessagesGlobal";
 import { EmojiClickData } from "emoji-picker-react";
 import { User } from "@/types/db";
+import { Reaction } from "@/lib/validations/reaction";
 
 export interface ReplyTo {
   text: string;
@@ -21,12 +22,14 @@ interface ClientChatGlobalProps {
   globalChatUsers: User[];
   initialMessages: Message[];
   session: Session;
+  initialReactions: Reaction[];
 }
 
 const ClientChatGlobal = ({
   globalChatUsers,
   initialMessages,
   session,
+  initialReactions,
 }: ClientChatGlobalProps) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isReplying, setIsReplying] = useState<boolean>(false);
@@ -66,16 +69,13 @@ const ClientChatGlobal = ({
     }
   };
 
-  const reactToMessage = async (
-    emoji: EmojiClickData,
-    messageId: string,
-    timestamp: number
-  ) => {
+  const reactToMessage = async (emoji: EmojiClickData, message: Message) => {
     try {
       await axios.post("/api/reaction/add", {
         emoji: emoji,
-        messageId: messageId,
-        timestamp: timestamp,
+        messageId: message.id,
+        timestamp: message.timestamp,
+        messageText: message.text,
       });
     } catch (error) {
       console.log("err", error);
@@ -93,6 +93,7 @@ const ClientChatGlobal = ({
         setIsReplying={setIsReplying}
         setReplyTo={setReplyTo}
         reactToMessage={reactToMessage}
+        initialReactions={initialReactions}
       />
       <ChatInput
         isReplying={isReplying}
