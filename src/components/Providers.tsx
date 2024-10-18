@@ -1,7 +1,7 @@
 "use client";
 
+import ReactionModalContextProvider from "@/contexts/ReactionsModalcontext";
 import SettingsModalContextProvider from "@/contexts/SettingsModalContext";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { FC, ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -13,7 +13,9 @@ const Providers: FC<ProvidersProps> = ({ children }) => {
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
-      <SettingsModalContextProvider>{children}</SettingsModalContextProvider>
+      <SettingsModalContextProvider>
+        <ReactionModalContextProvider>{children}</ReactionModalContextProvider>
+      </SettingsModalContextProvider>
     </>
   );
 };

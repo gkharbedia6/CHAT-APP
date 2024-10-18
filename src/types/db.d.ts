@@ -24,8 +24,11 @@ interface Message {
 }
 
 interface Reaction {
-  emoji: EmojiClickData;
+  messageId: string;
+  emoji?: EmojiClickData;
   senderId: string;
+  timestamp: number;
+  messageText: string;
 }
 
 interface FriendRequest {

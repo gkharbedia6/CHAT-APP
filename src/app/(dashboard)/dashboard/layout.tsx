@@ -13,6 +13,7 @@ import { getFriendsByUserId } from "@/helpers/get-friends-by-user-id";
 import SidebarChatList from "@/components/SidebarChatList";
 import SettingsModal from "@/components/SettingsModal";
 import { User } from "@/types/db";
+import ReactionModal from "@/components/ReactionModal";
 
 interface LayoutProps {
   children: ReactNode;
@@ -50,6 +51,7 @@ const layout = async ({ children }: LayoutProps) => {
   return (
     <div className="w-full flex h-screen relative items-center justify-center ">
       <SettingsModal />
+      <ReactionModal />
       <div className="w-[95%] h-[95%]  flex border border-black shadow-md">
         <div className="flex h-full w-full max-w-xs grow flex-col gap-y-5 overflow-y-auto overflow-x-hidden border-r border-black  p-6">
           <Link href="/dashboard" className="flex h-16 shrink-0 items-center">

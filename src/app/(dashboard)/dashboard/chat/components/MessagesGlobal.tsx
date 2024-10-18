@@ -14,6 +14,7 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
 import MoreSettings from "@/components/MoreSettings";
 import { Reaction } from "@/lib/validations/reaction";
+import { useReactionModalContext } from "@/contexts/ReactionsModalcontext";
 
 interface MessagesGlobalProps {
   globalChatUsers: User[];
@@ -43,10 +44,10 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const moreSettingsRef = useRef<HTMLDivElement | null>(null);
   const moreSettingsIconRef = useRef<HTMLDivElement | null>(null);
 
-  console.log(initialReactions);
-
   const { isSettingsModalOpen, setIsSettingsModalOpen } =
     useSettingsModalContext();
+  const { isReactionModalOpen, setIsReactionModalOpen } =
+    useReactionModalContext();
   const [messageSettingsHovered, setMessageSettingsHovered] = useState<
     string | null
   >(null);
@@ -57,6 +58,12 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<string | null>(
     null
   );
+
+  const getReactionsToMessage = (messageId: string) => {
+    return initialReactions.filter(
+      (reaction) => reaction.messageId === messageId
+    ) as Reaction[];
+  };
 
   const [emojiIconPosition, setEmojiIconPosition] = useState({
     top: 0,
@@ -409,10 +416,17 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                     >
                       {message.text}
                     </span>
-                    {initialReactions.filter(
-                      (reaction) => reaction.messageId === message.id
-                    ).length > 0 ? (
-                      <div className=" flex gap-[4px] -mt-2 flex-row  cursor-pointer items-center justify-center bg-gray-200 border-[2px] border-white rounded-full px-2">
+                    {getReactionsToMessage(message.id).length > 0 ? (
+                      <div
+                        onClick={() => {
+                          if (getReactionsToMessage(message.id).length) {
+                            setIsReactionModalOpen(
+                              getReactionsToMessage(message.id)
+                            );
+                          }
+                        }}
+                        className=" flex gap-[4px] -mt-2 flex-row  cursor-pointer items-center justify-center bg-gray-200 border-[2px] border-white rounded-full px-2"
+                      >
                         {initialReactions.map((reaction) => {
                           if (reaction.messageId === message.id) {
                             return (
@@ -429,11 +443,7 @@ const MessagesGlobal: FC<MessagesGlobalProps> = ({
                         })}
 
                         <span className="text-sm">
-                          {
-                            initialReactions.filter(
-                              (reaction) => reaction.messageId === message.id
-                            ).length
-                          }
+                          {getReactionsToMessage(message.id).length}
                         </span>
                       </div>
                     ) : null}

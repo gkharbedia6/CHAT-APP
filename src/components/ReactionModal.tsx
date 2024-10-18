@@ -1,14 +1,15 @@
 "use client";
 
-import { useSettingsModalContext } from "@/contexts/SettingsModalContext";
+import { useReactionModalContext } from "@/contexts/ReactionsModalcontext";
 import { cn } from "@/lib/utils";
+import { Reaction } from "@/lib/validations/reaction";
 import { useEffect, useRef } from "react";
 
-const SettingsModal = () => {
+const ReactionModal = () => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  const { isSettingsModalOpen, setIsSettingsModalOpen } =
-    useSettingsModalContext();
+  const { isReactionModalOpen, setIsReactionModalOpen } =
+    useReactionModalContext();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -17,7 +18,7 @@ const SettingsModal = () => {
         modalRef.current &&
         !modalRef.current.contains(event.target as Node)
       ) {
-        setIsSettingsModalOpen(null);
+        setIsReactionModalOpen(null);
       }
     };
     document.addEventListener("click", handleClickOutside);
@@ -25,16 +26,16 @@ const SettingsModal = () => {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [isSettingsModalOpen, setIsSettingsModalOpen]);
+  }, [isReactionModalOpen, setIsReactionModalOpen]);
 
   return (
     <>
-      {isSettingsModalOpen && (
+      {isReactionModalOpen && (
         <div
           className={cn(
             "h-screen z-[-10] absolute top-0 left-0  w-screen flex items-center justify-center",
             {
-              "z-40": isSettingsModalOpen,
+              "z-40": isReactionModalOpen,
             }
           )}
         >
@@ -42,11 +43,18 @@ const SettingsModal = () => {
           <div
             ref={modalRef}
             className="w-[400px] relative z-50 h-[250px] bg-white shadow-md flex flex-col items-center justify-start"
-          ></div>
+          >
+            {isReactionModalOpen.map((reaction) => (
+              <div key={`${reaction.messageId} - ${reaction.timestamp}`}>
+                {reaction.senderId} {reaction.messageText}{" "}
+                {reaction?.emoji?.emoji ?? ""}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </>
   );
 };
 
-export default SettingsModal;
+export default ReactionModal;
